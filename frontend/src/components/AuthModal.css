@@ -1,0 +1,248 @@
+/* Háttér (overlay) a modális mögött */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 999;
+    animation: fadeIn 0.3s forwards;
+  }
+  
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  
+  /* Maga a popup doboz */
+  .modal-content {
+    position: relative;
+    background: #fff;
+    width: 90%;
+    max-width: 400px;
+    border-radius: 20px; /* Kerekebb modal */
+    animation: slideDown 0.3s forwards;
+    font-family: "Open Sans", sans-serif;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    overflow: hidden; /* Fontos, hogy a belső border ne lógjon túl */
+  }
+  
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  /* Tab-gombok */
+  .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #fff;
+    padding: 8px 0;
+    /* Ha is akarsz, itt is lehívhatod a border-top-left, border-top-right, stb. */
+  }
+  
+  .modal-header button {
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    color: #555;
+    background: transparent;
+    border: 2px solid transparent;
+    border-radius: 12px; /* Kerekebb tab-gomb */
+    transition: all 0.3s ease;
+    box-sizing: border-box; /* Ezt használva a border belül marad */
+  }
+  
+  .modal-header button:hover {
+    background-color: #f5f5f5;
+    border-color: #e30b5c; /* A border belül marad, nem tolja ki a gombot */
+  }
+  
+  .modal-header button.active {
+    color: #e30b5c;
+    border-color: #e30b5c;
+    background-color: #ffeaf2; /* Finom rózsaszín */
+    font-weight: 600;
+  }
+  
+  /* Bezáró gomb (X) teljesen kívül */
+  .close-button {
+    position: absolute;
+    top: 8px; /* picit eltoljuk felfelé */
+    right: 5px; /* jobbra is kitoljuk, hogy kívül legyen */
+    width: 36px;
+    height: 36px;
+    background: #fff;
+    border: 2px solid #e30b5c;
+    color: #e30b5c;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transition: background-color 0.2s, transform 0.2s;
+  }
+  
+  .close-button:hover {
+    background-color: #ffd1e2;
+    transform: scale(1.05);
+  }
+  
+  /* Tartalom a modálisban */
+  .modal-body {
+    padding: 20px;
+  }
+  
+  /* Fül-részeknél animálva jelenjen meg a tartalom */
+  .tab-content {
+    display: flex;
+    flex-direction: column;
+    animation: fadeInContent 0.3s forwards;
+  }
+  
+  @keyframes fadeInContent {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .tab-content h2 {
+    font-size: 18px;
+    margin-bottom: 16px;
+    color: #333;
+    text-align: center;
+  }
+  
+  /* Közösségi gombok */
+  .social-button {
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    padding: 8px 12px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    font-size: 14px;
+    text-align: center;
+    transition: background-color 0.2s, box-shadow 0.2s;
+  }
+  
+  .social-button.google {
+    background-color: #fff;
+    color: #555;
+  }
+  
+  .social-button.google:hover {
+    background-color: #f3f3f3;
+  }
+  
+  .social-button.facebook {
+    background-color: #4267B2;
+    color: #fff;
+  }
+  
+  .social-button.facebook:hover {
+    background-color: #365899;
+  }
+  
+  /* Vagy e-mail címmel */
+  .separator {
+    text-align: center;
+    color: #999;
+    margin: 16px 0;
+    font-size: 14px;
+  }
+  
+  /* Label és input mezők */
+  label {
+    font-size: 14px;
+    margin: 8px 0 4px;
+    color: #333;
+  }
+  
+  input[type="email"],
+  input[type="password"] {
+    padding: 10px;
+    font-size: 14px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    transition: border-color 0.2s;
+  }
+  
+  input[type="email"]:focus,
+  input[type="password"]:focus {
+    outline: none;
+    border-color: #e30b5c;
+  }
+  
+  /* Hírlevél */
+  .newsletter {
+    display: flex;
+    align-items: center;
+    margin: 8px 0;
+  }
+  
+  .newsletter label {
+    margin-left: 6px;
+    font-size: 14px;
+    color: #555;
+  }
+  
+  /* Nagy piros gomb */
+  .submit-button {
+    background: #e30b5c;
+    color: #fff;
+    padding: 12px;
+    border: none;
+    border-radius: 24px; /* kerekebb gomb */
+    font-size: 15px;
+    cursor: pointer;
+    margin: 12px 0;
+    box-shadow: 0 3px 8px rgba(227, 11, 92, 0.25);
+    transition: background-color 0.3s, transform 0.2s;
+  }
+  
+  .submit-button:hover {
+    background: #c7094f;
+    transform: translateY(-1px);
+  }
+  
+  /* Apró információs szöveg */
+  .info-text {
+    font-size: 12px;
+    color: #666;
+    line-height: 1.4;
+    margin-top: 8px;
+    text-align: center;
+  }
+  
+  .info-text a {
+    color: #e30b5c;
+    text-decoration: none;
+  }
+  
+  .info-text a:hover {
+    text-decoration: underline;
+  }
+  

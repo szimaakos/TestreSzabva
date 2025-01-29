@@ -1,0 +1,26 @@
+# .NET
+backend/bin/
+backend/obj/
+backend/*.user
+backend/*.suo
+backend/*.sqlite3
+backend/*.db
+backend/.vs/
+backend/*.csproj.user
+backend/*.sln.docstates
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+
+# IDE
+*.vs
+*.vscode/
+*.idea/
+*.sublime*
+*.log
+
+# OS
+Thumbs.db
+.DS_Store
