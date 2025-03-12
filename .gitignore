@@ -1,0 +1,11 @@
+# Visual Studio related files
+.vs/
+*.user
+*.suo
+
+# Build output directories
+bin/
+obj/
+
+# Node modules (ha a frontend használja)
+node_modules/

@@ -1,0 +1,373 @@
+/* Globális reset és alap háttér */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  :root {
+    --primary-color: #e30b5c;
+    --primary-hover: #c0094f;
+    --text-color: #333;
+    --light-gray: #ddd;
+    --error-color: #d10000;
+    --shadow-color: rgba(0, 0, 0, 0.1);
+    --primary-shadow: rgba(227, 11, 92, 0.2);
+    --primary-shadow-hover: rgba(227, 11, 92, 0.3);
+    --bg-gradient: linear-gradient(135deg, #ece9e6, #ffffff);
+    --radius-sm: 8px;
+    --radius-lg: 15px;
+    --radius-xl: 24px;
+    --transition: all 0.3s ease;
+  }
+  
+  body {
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    background: var(--bg-gradient);
+    color: var(--text-color);
+    line-height: 1.6;
+  }
+  
+  /* Középre igazított, teljes magasságú konténer */
+  .settings-container {
+    display: grid;
+    place-items: center;
+    min-height: 100vh;
+    padding: 20px;
+    background: var(--bg-gradient);
+  }
+  
+  /* A kártya, ami nem esik ki a képernyőből, és ha hosszú, belül görgethető */
+  .settings-card {
+    background: #fff;
+    border-radius: var(--radius-lg);
+    padding: 2.5rem;
+    width: 100%;
+    max-width: 800px;
+    max-height: calc(100vh - 40px);
+    overflow-y: auto;
+    box-shadow: 0 10px 20px var(--shadow-color),
+                0 6px 6px var(--shadow-color);
+    animation: fadeIn 0.6s ease-out;
+    margin: 0 auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--primary-color) #f0f0f0;
+  }
+  
+  /* Scrollbar testreszabása */
+  .settings-card::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  .settings-card::-webkit-scrollbar-track {
+    background: #f0f0f0;
+    border-radius: 10px;
+  }
+  
+  .settings-card::-webkit-scrollbar-thumb {
+    background-color: var(--primary-color);
+    border-radius: 10px;
+  }
+  
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  /* Címsor */
+  .settings-card h1 {
+    text-align: center;
+    margin-bottom: 1.5rem;
+    color: var(--primary-color);
+    font-size: 2rem;
+    font-weight: 600;
+    position: relative;
+    padding-bottom: 1rem;
+  }
+  
+  .settings-card h1::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 3px;
+    background: var(--primary-color);
+    border-radius: 3px;
+  }
+  
+  /* Űrlap: Grid elrendezés két oszlopban nagy képernyőn, egymás alatt mobilon */
+  .settings-form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+  }
+  
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    transition: var(--transition);
+  }
+  
+  .form-group:hover {
+    transform: translateY(-2px);
+  }
+  
+  .form-group label {
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+    font-weight: 500;
+    color: #444;
+    transition: var(--transition);
+  }
+  
+  .form-group input,
+  .form-group select {
+    padding: 0.8rem 1rem;
+    font-size: 1rem;
+    border: 1px solid var(--light-gray);
+    border-radius: var(--radius-sm);
+    transition: var(--transition);
+    background-color: #f9f9f9;
+  }
+  
+  .form-group input:focus,
+  .form-group select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(227, 11, 92, 0.1);
+    background-color: #fff;
+  }
+  
+  /* Input mezők focus állapotban label kiemelése */
+  .form-group input:focus + label,
+  .form-group select:focus + label {
+    color: var(--primary-color);
+  }
+  
+  /* Mező dekoráció (opcionális) */
+  .form-group::before {
+    content: "";
+    position: absolute;
+    left: -10px;
+    top: 0;
+    height: 0;
+    width: 3px;
+    background: var(--primary-color);
+    border-radius: 3px;
+    opacity: 0;
+    transition: var(--transition);
+  }
+  
+  .form-group:focus-within::before {
+    height: 100%;
+    opacity: 1;
+  }
+  
+  /* Egy teljes szélességű elem a gridben, ha kell (pl. hibaüzenet, gomb) */
+  .full-width {
+    grid-column: 1 / -1;
+  }
+  
+  /* Mentés gomb – teljes szélességű a gridben, középre igazítva */
+  button[type="submit"] {
+    grid-column: 1 / -1;
+    padding: 0.85rem 2rem;
+    font-size: 1rem;
+    background-color: var(--primary-color);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-xl);
+    cursor: pointer;
+    transition: var(--transition);
+    box-shadow: 0 2px 6px var(--primary-shadow);
+    justify-self: center;
+    margin-top: 1.5rem;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  button[type="submit"]::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.2);
+    transform: skewX(-30deg);
+    transition: 0.5s;
+  }
+  
+  button[type="submit"]:hover {
+    background-color: var(--primary-hover);
+    box-shadow: 0 4px 12px var(--primary-shadow-hover);
+    transform: translateY(-2px);
+  }
+  
+  button[type="submit"]:hover::before {
+    left: 100%;
+  }
+  
+  button[type="submit"]:disabled {
+    background-color: #b3b3b3;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+  }
+  
+  /* Hibaüzenet stílus */
+  .error {
+    grid-column: 1 / -1;
+    color: var(--error-color);
+    text-align: center;
+    margin-bottom: 1.2rem;
+    font-weight: 600;
+    padding: 0.8rem;
+    background-color: rgba(209, 0, 0, 0.1);
+    border-radius: var(--radius-sm);
+    border-left: 4px solid var(--error-color);
+    animation: errorShake 0.6s;
+  }
+  
+  @keyframes errorShake {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-5px); }
+    40%, 80% { transform: translateX(5px); }
+  }
+  
+  /* Sikeres mentés üzenet */
+  .success-message {
+    grid-column: 1 / -1;
+    color: #28a745;
+    text-align: center;
+    margin-bottom: 1.2rem;
+    font-weight: 600;
+    padding: 0.8rem;
+    background-color: rgba(40, 167, 69, 0.1);
+    border-radius: var(--radius-sm);
+    border-left: 4px solid #28a745;
+    animation: fadeIn 0.6s;
+  }
+  
+  /* Mobil nézet: egy oszlopos elrendezés */
+  @media (max-width: 768px) {
+    .settings-form {
+      grid-template-columns: 1fr;
+    }
+    
+    .settings-card {
+      padding: 1.5rem;
+    }
+    
+    .settings-card h1 {
+      font-size: 1.5rem;
+    }
+  }
+  
+  /* Dashboard integráció - Javított stílusok */
+  .dashboard-content .settings-container {
+    background: transparent;
+    padding: 10px;
+  }
+  
+  /* Animált fokozatos betöltés a mezőknek */
+  .settings-form .form-group {
+    opacity: 0;
+    animation: fadeUp 0.3s forwards;
+  }
+  
+  @keyframes fadeUp {
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .error {
+    color: #e74c3c;
+    background-color: #fdecea;
+    border: 1px solid #e74c3c;
+    padding: 10px;
+    border-radius: 4px;
+    margin-bottom: 15px;
+  }
+  
+  .success {
+    color: #2ecc71;
+    background-color: #e8f8f3;
+    border: 1px solid #2ecc71;
+    padding: 10px;
+    border-radius: 4px;
+    margin-bottom: 15px;
+    animation: fadeOut 3s forwards;
+    animation-delay: 2s;
+  }
+  
+  @keyframes fadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+  }
+  
+  /* Mezők késleltetett betöltése */
+  .settings-form .form-group:nth-child(1) { animation-delay: 0.1s; }
+  .settings-form .form-group:nth-child(2) { animation-delay: 0.15s; }
+  .settings-form .form-group:nth-child(3) { animation-delay: 0.2s; }
+  .settings-form .form-group:nth-child(4) { animation-delay: 0.25s; }
+  .settings-form .form-group:nth-child(5) { animation-delay: 0.3s; }
+  .settings-form .form-group:nth-child(6) { animation-delay: 0.35s; }
+  .settings-form .form-group:nth-child(7) { animation-delay: 0.4s; }
+  .settings-form .form-group:nth-child(8) { animation-delay: 0.45s; }
+  .settings-form .form-group:nth-child(9) { animation-delay: 0.5s; }
+  .settings-form .form-group:nth-child(10) { animation-delay: 0.55s; }
+  .settings-form button[type="submit"] { animation-delay: 0.65s; }
+  
+  /* Dark mode támogatás (rendszer preferencia alapján) */
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --text-color: #f0f0f0;
+      --light-gray: #444;
+      --shadow-color: rgba(0, 0, 0, 0.3);
+      --bg-gradient: linear-gradient(135deg, #2d2d2d, #1a1a1a);
+    }
+    
+    body {
+      background: var(--bg-gradient);
+    }
+    
+    .settings-container {
+      background: var(--bg-gradient);
+    }
+    
+    .settings-card {
+      background: #2d2d2d;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3),
+                  0 6px 6px rgba(0, 0, 0, 0.2);
+    }
+    
+    .form-group label {
+      color: #d0d0d0;
+    }
+    
+    .form-group input,
+    .form-group select {
+      background-color: #3a3a3a;
+      color: #f0f0f0;
+      border-color: #555;
+    }
+    
+    .form-group input:focus,
+    .form-group select:focus {
+      background-color: #444;
+    }
+  }

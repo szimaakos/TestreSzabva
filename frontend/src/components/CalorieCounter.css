@@ -1,0 +1,48 @@
+.calorie-counter {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    animation: fadeIn 0.8s ease-out;
+  }
+  
+  .calorie-counter h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #e30b5c;
+  }
+  
+  .recommended-calories p {
+    font-size: 18px;
+    text-align: center;
+    color: #555;
+  }
+  
+  .warning-text {
+    color: red;
+    font-weight: bold;
+    margin-top: 10px;
+  }
+  
+  
+  .calories-status {
+    text-align: center;
+    font-size: 16px;
+    margin-top: 1rem;
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  /* Mobilbarát */
+  @media (max-width: 600px) {
+    .recommended-calories p {
+      font-size: 16px;
+    }
+    .calories-status {
+      font-size: 14px;
+    }
+  }

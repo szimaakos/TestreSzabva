@@ -1,0 +1,221 @@
+/* Container for both calorie boxes */
+.calories-boxes-container {
+    display: flex;
+    gap: 20px;
+    width: 100%;
+  }
+  
+  /* Base styles for each calorie box */
+  .calories-box {
+    flex: 1;
+    background: linear-gradient(to bottom right, #ffffff, #f9f9f9);
+    border-radius: 16px;
+    padding: 28px;
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.06);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border: 1px solid rgba(0, 0, 0, 0.04);
+    animation: fadeIn 0.8s ease-out;
+  }
+  
+  .calories-box:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 32px rgba(0, 0, 0, 0.08);
+  }
+  
+  .calories-box h2 {
+    color: #e30b5c;
+    font-size: 24px;
+    font-weight: 800;
+    margin-bottom: 24px;
+    text-align: center;
+    position: relative;
+    letter-spacing: -0.5px;
+  }
+  
+  .calories-box h2:after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 70px;
+    height: 4px;
+    background: linear-gradient(to right, #e30b5c, #ff6b9d);
+    border-radius: 4px;
+  }
+  
+  .calories-progress {
+    margin-bottom: 20px;
+  }
+  
+  .progress-bar {
+    height: 16px;
+    background-color: #f0f0f0;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 10px;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06);
+  }
+  
+  .progress-fill {
+    height: 100%;
+    transition: width 1s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.5s;
+    border-radius: 8px;
+    background-image: linear-gradient(to right, var(--main-color, #4CAF50), var(--main-color-light, #8BC34A));
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    animation: fillProgress 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  }
+  
+  .progress-text {
+    display: flex;
+    justify-content: flex-end;
+    font-size: 15px;
+    font-weight: 700;
+    color: #555;
+  }
+  
+  .calories-info {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-top: 20px;
+  }
+  
+  .calories-item {
+    background: #f8f8f8;
+    padding: 16px;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    transition: all 0.2s ease;
+    border: 1px solid rgba(0, 0, 0, 0.03);
+  }
+  
+  .calories-item:hover {
+    background: #f0f0f0;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+  }
+  
+  .info-label {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 6px;
+    font-weight: 600;
+  }
+  
+  .info-value {
+    font-size: 18px;
+    font-weight: 800;
+    color: #333;
+  }
+  
+  /* Highlight the remaining calories */
+  .calories-item:nth-child(3) .info-value {
+    background: linear-gradient(to right, #e30b5c, #ff6b9d);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-size: 20px;
+  }
+  
+  .progress-fill {
+    height: 100%;
+    transition: width 1s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.5s;
+    border-radius: 8px;
+    background-image: linear-gradient(to right, var(--main-color, #4CAF50), var(--main-color-light, #8BC34A));
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    width: 0%; /* Kezdeti érték */
+  }
+  
+  /* Animation for progress bar 
+  @keyframes fillProgress {
+    from { width: 0; }
+    to { width: var(--target-width, 100%); }
+  }*/
+  
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  /* Responsive design */
+  @media (max-width: 768px) {
+    .calories-boxes-container {
+      flex-direction: column;
+    }
+    
+    .calories-box {
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    
+    .calories-info {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+    
+    .calories-item {
+      flex-direction: row;
+      justify-content: space-between;
+      padding: 14px 18px;
+    }
+    
+    .info-label {
+      margin-bottom: 0;
+    }
+    
+    .info-value {
+      font-size: 16px;
+    }
+    
+    .calories-item:nth-child(3) .info-value {
+      font-size: 18px;
+    }
+  }
+  
+  /* Tablet és kisebb képernyők */
+  @media (max-width: 600px) {
+    .calories-box h2 {
+      font-size: 20px;
+    }
+  }
+  
+  /* Dark mode */
+  @media (prefers-color-scheme: dark) {
+    .calories-box {
+      background: linear-gradient(to bottom right, #252525, #1a1a1a);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    
+    .calories-box h2 {
+      color: #ff6b9d;
+    }
+    
+    .calories-item {
+      background: #333;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    
+    .calories-item:hover {
+      background: #3a3a3a;
+    }
+    
+    .info-label {
+      color: #aaa;
+    }
+    
+    .info-value {
+      color: #fff;
+    }
+    
+    .progress-bar {
+      background-color: #444;
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+    
+    .progress-text {
+      color: #ccc;
+    }
+  }
