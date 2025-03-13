@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
-using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
 using TestreSzabvaAdmin.Models;
 
 namespace TestreSzabvaAdmin
@@ -19,17 +21,29 @@ namespace TestreSzabvaAdmin
         {
             InitializeComponent();
             FoodsDataGrid.ItemsSource = _foods;
-            CategoriesListBox.ItemsSource = _categories;
-
-            // Állítsd be az API alap URL-jét (pl. a 5162-es port)
             _httpClient.BaseAddress = new Uri("http://localhost:5162/");
-
-            // Ételek és kategóriák betöltése
             _ = LoadFoods();
             _ = LoadCategories();
+            CollectionViewSource.GetDefaultView(_foods).Filter = FilterFoods;
         }
 
-        private async Task LoadFoods()
+        private bool FilterFoods(object obj)
+        {
+            if (!(obj is Food food))
+                return false;
+            string searchText = SearchTextBox.Text.Trim().ToLower();
+            string selectedCategory = "Összes";
+            if (CategoryFilterComboBox.SelectedItem is ComboBoxItem cbi && cbi.Content != null)
+                selectedCategory = cbi.Content.ToString();
+
+            bool matchesSearch = string.IsNullOrEmpty(searchText) || food.Name.ToLower().Contains(searchText);
+            bool matchesCategory = selectedCategory == "Összes" ||
+                (food.EtelKategoriak != null && food.EtelKategoriak.Any(ek =>
+                    ek.Kategoria.Name.Equals(selectedCategory, StringComparison.OrdinalIgnoreCase)));
+            return matchesSearch && matchesCategory;
+        }
+
+        private async System.Threading.Tasks.Task LoadFoods()
         {
             try
             {
@@ -38,9 +52,7 @@ namespace TestreSzabvaAdmin
                 if (foods != null)
                 {
                     foreach (var food in foods)
-                    {
                         _foods.Add(food);
-                    }
                 }
             }
             catch (Exception ex)
@@ -49,7 +61,7 @@ namespace TestreSzabvaAdmin
             }
         }
 
-        private async Task LoadCategories()
+        private async System.Threading.Tasks.Task LoadCategories()
         {
             try
             {
@@ -58,10 +70,12 @@ namespace TestreSzabvaAdmin
                 if (categories != null)
                 {
                     foreach (var cat in categories)
-                    {
                         _categories.Add(cat);
-                    }
                 }
+                CategoryFilterComboBox.Items.Clear();
+                CategoryFilterComboBox.Items.Add(new ComboBoxItem { Content = "Összes", IsSelected = true });
+                foreach (var cat in _categories)
+                    CategoryFilterComboBox.Items.Add(new ComboBoxItem { Content = cat.Name });
             }
             catch (Exception ex)
             {
@@ -69,52 +83,60 @@ namespace TestreSzabvaAdmin
             }
         }
 
-        private async void AddFood_Click(object sender, RoutedEventArgs e)
+        private void SearchTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
-            try
-            {
-                // Kiválasztott kategóriák azonosítóinak lekérése
-                var selectedCategoryIds = CategoriesListBox.SelectedItems
-                                            .Cast<Category>()
-                                            .Select(c => c.CategoryId)
-                                            .ToList();
+            CollectionViewSource.GetDefaultView(_foods).Refresh();
+        }
 
-                var createFoodDto = new CreateFoodDto
-                {
-                    Name = NameTextBox.Text,
-                    Calories = float.Parse(CaloriesTextBox.Text),
-                    Protein = string.IsNullOrWhiteSpace(ProteinTextBox.Text) ? (float?)null : float.Parse(ProteinTextBox.Text),
-                    Carbs = string.IsNullOrWhiteSpace(CarbsTextBox.Text) ? (float?)null : float.Parse(CarbsTextBox.Text),
-                    Fats = string.IsNullOrWhiteSpace(FatsTextBox.Text) ? (float?)null : float.Parse(FatsTextBox.Text),
-                    CategoryIds = selectedCategoryIds
-                };
+        private void CategoryFilterComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            CollectionViewSource.GetDefaultView(_foods).Refresh();
+        }
 
-                var response = await _httpClient.PostAsJsonAsync("api/Etel", createFoodDto);
-                if (response.IsSuccessStatusCode)
-                {
-                    MessageBox.Show("Étel sikeresen hozzáadva.");
-                    await LoadFoods();
-                    ClearForm();
-                }
-                else
-                {
-                    MessageBox.Show("Hiba történt az étel hozzáadásakor.");
-                }
-            }
-            catch (Exception ex)
+        private void NewFoodButton_Click(object sender, RoutedEventArgs e)
+        {
+            var addWindow = new AddEditFoodWindow(_categories);
+            addWindow.Owner = this;
+            if (addWindow.ShowDialog() == true)
+                _ = LoadFoods();
+        }
+
+        private void EditFoodButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button btn && btn.Tag is Food food)
             {
-                MessageBox.Show("Hiba: " + ex.Message);
+                var editWindow = new AddEditFoodWindow(_categories, food);
+                editWindow.Owner = this;
+                if (editWindow.ShowDialog() == true)
+                    _ = LoadFoods();
             }
         }
 
-        private void ClearForm()
+        private async void DeleteFoodButton_Click(object sender, RoutedEventArgs e)
         {
-            NameTextBox.Clear();
-            CaloriesTextBox.Clear();
-            ProteinTextBox.Clear();
-            CarbsTextBox.Clear();
-            FatsTextBox.Clear();
-            CategoriesListBox.UnselectAll();
+            if (sender is Button btn && btn.Tag is Food food)
+            {
+                if (MessageBox.Show($"Biztosan törlöd a(z) {food.Name} ételt?", "Törlés megerősítése", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+                {
+                    try
+                    {
+                        var response = await _httpClient.DeleteAsync($"api/Etel/{food.FoodId}");
+                        if (response.IsSuccessStatusCode)
+                        {
+                            MessageBox.Show("Étel törölve.");
+                            await LoadFoods();
+                        }
+                        else
+                        {
+                            MessageBox.Show("Hiba történt a törlés során.");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show("Hiba: " + ex.Message);
+                    }
+                }
+            }
         }
     }
 }

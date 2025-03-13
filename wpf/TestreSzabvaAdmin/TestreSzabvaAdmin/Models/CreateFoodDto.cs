@@ -9,6 +9,7 @@ namespace TestreSzabvaAdmin.Models
         public float? Protein { get; set; }
         public float? Carbs { get; set; }
         public float? Fats { get; set; }
-        public List<int> CategoryIds { get; set; } = new List<int>();
+        public List<int> CategoryIds { get; set; }
     }
+
 }

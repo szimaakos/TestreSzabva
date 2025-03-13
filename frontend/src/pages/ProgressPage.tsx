@@ -1,79 +1,111 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Line } from "react-chartjs-2";
 import "chart.js/auto";
 import "./ProgressPage.css";
-import { useUser } from "../context/UserContext";
+import { useUser } from '../context/UserContext';
 
 interface ProgressRecord {
-  date: string;      // ISO string vagy más formázott dátum
-  weight: number;    // kg-ban
-  calories: number;  // napi kalóriabevitel
-}
-
-interface WeightLogEntry {
   date: string;
   weight: number;
 }
 
 const ProgressPage: React.FC = () => {
   const navigate = useNavigate();
-  const { user, loading: userLoading, refreshUserData, updateUserData, caloriesConsumed } = useUser();
+  const { user, updateUserData, refreshUserData } = useUser();
   const [loading, setLoading] = useState(true);
   const [newWeight, setNewWeight] = useState<number | undefined>(undefined);
   const [updateStatus, setUpdateStatus] = useState<string>("");
   const [progressData, setProgressData] = useState<ProgressRecord[]>([]);
-  const [weightHistory, setWeightHistory] = useState<WeightLogEntry[]>([]);
-  const [selectedDateRange, setSelectedDateRange] = useState<string>("all");
+  const [weightHistory, setWeightHistory] = useState<ProgressRecord[]>([]);
+  const [selectedDateRange, setSelectedDateRange] = useState<string>("2weeks");
   const [weightLogDate, setWeightLogDate] = useState<string>(
     new Date().toISOString().split("T")[0]
   );
 
-  
-  // LocalStorage-ból betöltjük a progress adatokat
-  const loadProgressData = useCallback(() => {
-    const storedRecordsJson = localStorage.getItem("progressRecords");
-    let records: ProgressRecord[] = [];
-    if (storedRecordsJson) {
-      try {
-        records = JSON.parse(storedRecordsJson);
-      } catch (error) {
-        console.error("Hiba az adatok olvasása során:", error);
+  // Hiányzó loadProgressData függvény
+  const loadProgressData = () => {
+    try {
+      const storedRecordsJson = localStorage.getItem("progressRecords");
+      if (storedRecordsJson) {
+        const records: ProgressRecord[] = JSON.parse(storedRecordsJson);
+        // A rekordokat dátum szerint rendezzük
+        records.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+        setProgressData(records);
+        setWeightHistory(records);
+      } else {
+        setProgressData([]);
+        setWeightHistory([]);
       }
+    } catch (error) {
+      console.error("Hiba a haladási adatok betöltésekor:", error);
+      setProgressData([]);
+      setWeightHistory([]);
     }
-    records.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-    setProgressData(records);
-    const weightLog = records.map(r => ({
-      date: r.date,
-      weight: r.weight,
-    }));
-    setWeightHistory(weightLog);
-  }, []);
-  
-  useEffect(() => {
-    let isMounted = true;
-    
-    const loadAllData = async () => {
-      await refreshUserData();
-      if (isMounted) {
-        loadProgressData();
-        setLoading(false);
-      }
-    };
-    
-    loadAllData();
-    
-    return () => {
-      isMounted = false;
-    };
-  }, []); // Remove the dependencies to prevent infinite rerendering
+  };
 
   useEffect(() => {
-    if (user && newWeight === undefined) {
+    const fetchAllData = async () => {
+      await refreshUserData(); // Frissítjük a felhasználó adatokat
+      loadProgressData();
+      setLoading(false);
+    };
+    fetchAllData();
+  }, [refreshUserData]);
+
+  useEffect(() => {
+    if (user && newWeight === undefined && user.weight !== undefined) {
       setNewWeight(user.weight);
     }
   }, [user, newWeight]);
-  
+
+  // A súly frissítés módosítása - csak egy olyan függvényt hagytunk, amely a UserContext-et használja
+  const handleWeightUpdate = async () => {
+    if (!user || newWeight === undefined) return;
+    setUpdateStatus("Feldolgozás...");
+    try {
+      const weightValue = parseFloat(newWeight.toString());
+      if (isNaN(weightValue)) {
+        setUpdateStatus("Érvénytelen súlyérték!");
+        return;
+      }
+      const dateString = weightLogDate + "T00:00:00Z";
+      const newRecord: ProgressRecord = {
+        date: dateString,
+        weight: weightValue,
+      };
+
+      // LocalStorage-ból betöltjük a progress adatokat
+      const storedRecordsJson = localStorage.getItem("progressRecords");
+      let storedRecords: ProgressRecord[] = storedRecordsJson ? JSON.parse(storedRecordsJson) : [];
+      const existingIndex = storedRecords.findIndex(r =>
+        new Date(r.date).toISOString().split("T")[0] === weightLogDate
+      );
+      if (existingIndex !== -1) {
+        storedRecords[existingIndex] = newRecord;
+      } else {
+        storedRecords.push(newRecord);
+      }
+      localStorage.setItem("progressRecords", JSON.stringify(storedRecords));
+      
+      // Ha a mai napra vonatkozik a súlyváltozás, akkor frissítsük a felhasználói profilt is
+      const todayIso = new Date().toISOString().split("T")[0];
+      if (weightLogDate === todayIso) {
+        const updatedUser = { ...user, weight: weightValue };
+        await updateUserData(updatedUser);
+        await refreshUserData(); // Frissítsük az adatokat a sikeres mentés után
+      }
+      
+      setUpdateStatus("Súlyadat sikeresen rögzítve!");
+      loadProgressData();
+      setTimeout(() => setUpdateStatus(""), 3000);
+    } catch (error) {
+      console.error("Hiba a súly frissítésekor:", error);
+      setUpdateStatus("Hiba történt a frissítés során!");
+      setTimeout(() => setUpdateStatus(""), 3000);
+    }
+  };
+
   // Dátumszűrés a kiválasztott időtartam alapján
   const filterDataByDateRange = (data: ProgressRecord[]) => {
     if (selectedDateRange === "all") return data;
@@ -82,6 +114,9 @@ const ProgressPage: React.FC = () => {
     switch (selectedDateRange) {
       case "week":
         startDate.setDate(today.getDate() - 7);
+        break;
+      case "2weeks":
+        startDate.setDate(today.getDate() - 14);
         break;
       case "month":
         startDate.setMonth(today.getMonth() - 1);
@@ -102,8 +137,8 @@ const ProgressPage: React.FC = () => {
 
   const filteredData = filterDataByDateRange(progressData);
 
-  // A diagramhoz adatok előállítása: scatter/line típusú diagram, ahol a segment callback határozza meg a vonal színét
-  const getChartData = () => {
+  // A súly diagram adatainak előállítása
+  const getWeightChartData = () => {
     if (filteredData.length > 0) {
       const labels = filteredData.map(record =>
         new Date(record.date).toLocaleDateString("hu-HU", { month: "short", day: "numeric" })
@@ -117,7 +152,6 @@ const ProgressPage: React.FC = () => {
             data: weightDataArr,
             fill: false,
             tension: 0.3,
-            // segment callback: ha a két pont közötti érték csökken, zöld, ha növekszik, piros
             segment: {
               borderColor: (ctx: any) => {
                 return ctx.p0.parsed.y > ctx.p1.parsed.y ? "#22c55e" : "#ef4444";
@@ -163,60 +197,41 @@ const ProgressPage: React.FC = () => {
     return { labels: [], datasets: [] };
   };
 
-  const weightChartData = getChartData();
+  const weightChartData = getWeightChartData();
 
-  // Súlykülönbség és trend számítása
+  // Súlykülönbség és trend számítása - %-os értékkel kiegészítve
   const calculateWeightDifference = () => {
-    if (weightHistory.length < 2) return { difference: 0, trend: "stable" };
+    if (weightHistory.length < 2) return { difference: 0, percentChange: 0, trend: "stable" };
     const oldest = weightHistory[0].weight;
     const newest = weightHistory[weightHistory.length - 1].weight;
     const difference = newest - oldest;
+    // Százalékos változás számítása
+    const percentChange = (difference / oldest) * 100;
+    
     let trend = "stable";
     if (difference < -0.5) trend = "decreasing";
     if (difference > 0.5) trend = "increasing";
-    return { difference, trend };
+    
+    return { 
+      difference, 
+      percentChange: percentChange,
+      trend 
+    };
   };
 
+  // Célsúly elérés százalékos aránya
   const calculateGoalProgress = () => {
     if (!user?.weight || !user?.goalWeight) return 0;
     const startWeight = weightHistory.length > 0 ? weightHistory[0].weight : user.weight;
     const currentWeightVal = user.weight;
     const goalWeight = user.goalWeight;
-    
-    if ((startWeight > goalWeight && currentWeightVal <= goalWeight) || 
-        (startWeight < goalWeight && currentWeightVal >= goalWeight)) {
-      return 100;
+    if (goalWeight > startWeight) {
+      if (currentWeightVal >= goalWeight) return 100;
+      return Math.round(((currentWeightVal - startWeight) / (goalWeight - startWeight)) * 100);
+    } else if (goalWeight < startWeight) {
+      if (currentWeightVal <= goalWeight) return 100;
+      return Math.round(((startWeight - currentWeightVal) / (startWeight - goalWeight)) * 100);
     }
-    
-    if (startWeight > goalWeight && currentWeightVal > goalWeight) {
-      const originalToLose = startWeight - goalWeight;
-      const alreadyLost = startWeight - currentWeightVal;
-      const progress = Math.min(99, Math.round((alreadyLost / originalToLose) * 100));
-      
-      if (currentWeightVal - goalWeight <= 1) {
-        return Math.max(progress, 95);
-      }
-      else if (currentWeightVal - goalWeight <= 5) {
-        return Math.max(progress, 80 + (5 - (currentWeightVal - goalWeight)) * 3);
-      }
-      
-      return progress;
-    } 
-    else if (startWeight < goalWeight && currentWeightVal < goalWeight) {
-      const originalToGain = goalWeight - startWeight;
-      const alreadyGained = currentWeightVal - startWeight;
-      const progress = Math.min(99, Math.round((alreadyGained / originalToGain) * 100));
-      
-      if (goalWeight - currentWeightVal <= 1) {
-        return Math.max(progress, 95);
-      }
-      else if (goalWeight - currentWeightVal <= 5) {
-        return Math.max(progress, 80 + (5 - (goalWeight - currentWeightVal)) * 3);
-      }
-      
-      return progress;
-    }
-    
     return 100;
   };
 
@@ -228,8 +243,7 @@ const ProgressPage: React.FC = () => {
     return (weightKg / (heightM * heightM)).toFixed(1);
   };
 
-  // Frissített BMI kategória számítás:
-  // Underweight: < 18.5, Normál: 18.5 - 26, Túlsúlyos: 26 - 30, Elhízott: >= 30
+  // Frissített BMI kategória számítás
   const getBMICategory = (bmi: number) => {
     if (bmi < 18.5) return { category: "Alulsúlyos", color: "#FFB74D" };
     if (bmi < 26) return { category: "Normál", color: "#66BB6A" };
@@ -237,88 +251,26 @@ const ProgressPage: React.FC = () => {
     return { category: "Elhízott", color: "#EF5350" };
   };
 
- 
   const bmi = calculateBMI();
   const bmiInfo = bmi ? getBMICategory(parseFloat(bmi)) : null;
   const weightDiff = calculateWeightDifference();
   const goalProgress = calculateGoalProgress();
 
-  const handleWeightUpdate = async () => {
-    if (!user || newWeight === undefined) return;
-    setUpdateStatus("Feldolgozás...");
-    try {
-      const weightValue = parseFloat(newWeight.toString());
-      if (isNaN(weightValue)) {
-        setUpdateStatus("Érvénytelen súlyérték!");
-        return;
-      }
-  
-      // Ellenőrizzük, hogy a választott dátum érvényes-e (nem jövőbeli és nem régebbi 2 hétnél)
-      const selectedDate = new Date(weightLogDate);
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      
-      const twoWeeksAgo = new Date();
-      twoWeeksAgo.setDate(today.getDate() - 14);
-      twoWeeksAgo.setHours(0, 0, 0, 0);
-      
-      if (selectedDate > today) {
-        setUpdateStatus("Jövőbeli dátumra nem rögzíthetsz súlyadatot!");
-        setTimeout(() => setUpdateStatus(""), 3000);
-        return;
-      }
-      
-      if (selectedDate < twoWeeksAgo) {
-        setUpdateStatus("Csak az elmúlt 2 hét adatait módosíthatod!");
-        setTimeout(() => setUpdateStatus(""), 3000);
-        return;
-      }
-  
-      const dateString = weightLogDate + "T00:00:00Z";
-      const newRecord: ProgressRecord = {
-        date: dateString,
-        weight: weightValue,
-        calories: dateString.split("T")[0] === new Date().toISOString().split("T")[0] 
-          ? caloriesConsumed  // A mai napra a UserContext-ből származó értéket használjuk
-          : user.calorieGoal || 0, // Korábbi napokra a célt használjuk
-      };
-      const storedRecordsJson = localStorage.getItem("progressRecords");
-      let storedRecords: ProgressRecord[] = storedRecordsJson ? JSON.parse(storedRecordsJson) : [];
-      const existingIndex = storedRecords.findIndex(r =>
-        new Date(r.date).toISOString().split("T")[0] === weightLogDate
-      );
-      if (existingIndex !== -1) {
-        storedRecords[existingIndex] = newRecord;
-      } else {
-        storedRecords.push(newRecord);
-      }
-      localStorage.setItem("progressRecords", JSON.stringify(storedRecords));
-  
-      if (weightLogDate === new Date().toISOString().split("T")[0]) {
-        const updatedUser = { ...user, weight: weightValue };
-        await updateUserData(updatedUser);
-      }
-  
-      setUpdateStatus("Súlyadat sikeresen rögzítve!");
-      loadProgressData();
-      setTimeout(() => setUpdateStatus(""), 3000);
-    } catch (error) {
-      console.error("Hiba a súly frissítésekor:", error);
-      setUpdateStatus("Hiba történt a frissítés során!");
-      setTimeout(() => setUpdateStatus(""), 3000);
-    }
-  };
-  
+  // A mai nap ISO formátumban
+  const todayIso = new Date().toISOString().split("T")[0];
+
+  // A dátum validáció: maximum mai nap lehet
+  const maxDate = new Date().toISOString().split("T")[0];
+
   const handleLogout = () => {
     localStorage.removeItem("authToken");
     localStorage.removeItem("userId");
     navigate("/");
   };
 
-  if (loading || userLoading) {
+  if (loading) {
     return <div className="dashboard-container">Betöltés...</div>;
   }
-
 
   return (
     <div className="dashboard-container fade-in">
@@ -328,6 +280,7 @@ const ProgressPage: React.FC = () => {
         </div>
         <nav className="sidebar-nav">
           <button onClick={() => navigate("/dashboard")}>Áttekintés</button>
+          <button onClick={() => navigate("/weekly-menu")}>Heti Menü</button>
           <button onClick={() => navigate("/progress")} className="active">
             Haladás
           </button>
@@ -357,6 +310,9 @@ const ProgressPage: React.FC = () => {
               <div className={`trend-badge ${weightDiff.trend}`}>
                 {weightDiff.difference > 0 ? "+" : ""}
                 {weightDiff.difference.toFixed(1)} kg
+                <span className="trend-percentage">
+                  ({weightDiff.percentChange.toFixed(1)}%)
+                </span>
                 <span className="trend-arrow">
                   {weightDiff.trend === "increasing" ? "↑" : "↓"}
                 </span>
@@ -382,8 +338,6 @@ const ProgressPage: React.FC = () => {
               </div>
             </div>
           )}
-
-          
         </div>
 
         {/* Időszakválasztó */}
@@ -391,6 +345,7 @@ const ProgressPage: React.FC = () => {
           <label>Időszak:</label>
           <select value={selectedDateRange} onChange={(e) => setSelectedDateRange(e.target.value)}>
             <option value="week">Elmúlt hét</option>
+            <option value="2weeks">Elmúlt 2 hét</option>
             <option value="month">Elmúlt hónap</option>
             <option value="3months">Elmúlt 3 hónap</option>
             <option value="6months">Elmúlt 6 hónap</option>
@@ -432,35 +387,30 @@ const ProgressPage: React.FC = () => {
 
         {/* Súlyadat rögzítése */}
         <section className="weight-update-section">
-    <h2>Súlyadat rögzítése</h2>
-    <div className="weight-input-group">
-      <input
-        type="number"
-        value={newWeight}
-        onChange={(e) => setNewWeight(parseFloat(e.target.value))}
-        placeholder="Írd be a súlyodat (kg)"
-        step="0.1"
-      />
-      <input
-        type="date"
-        value={weightLogDate}
-        onChange={(e) => setWeightLogDate(e.target.value)}
-        max={new Date().toISOString().split("T")[0]}
-        min={(() => {
-          const date = new Date();
-          date.setDate(date.getDate() - 14);
-          return date.toISOString().split("T")[0];
-        })()}
-      />
-      <button onClick={handleWeightUpdate}>Rögzítés</button>
-    </div>
-    {updateStatus && <p className="update-status">{updateStatus}</p>}
-    <p className="info-text">
-      {weightLogDate === new Date().toISOString().split("T")[0]
-        ? "A mai napra rögzített súly automatikusan frissíti az aktuális profil súlyodat is."
-        : "Korábbi dátumra (max. 2 hét) rögzített súly csak a haladási grafikonon jelenik meg."}
-    </p>
-  </section>
+          <h2>Súlyadat rögzítése</h2>
+          <div className="weight-input-group">
+            <input
+              type="number"
+              value={newWeight}
+              onChange={(e) => setNewWeight(parseFloat(e.target.value))}
+              placeholder="Írd be a súlyodat (kg)"
+              step="0.1"
+            />
+            <input
+              type="date"
+              value={weightLogDate}
+              onChange={(e) => setWeightLogDate(e.target.value)}
+              max={maxDate}
+            />
+            <button onClick={handleWeightUpdate}>Rögzítés</button>
+          </div>
+          {updateStatus && <p className="update-status">{updateStatus}</p>}
+          <p className="info-text">
+            {weightLogDate === new Date().toISOString().split("T")[0]
+              ? "A mai napra rögzített súly automatikusan frissíti az aktuális profil súlyodat is."
+              : "Korábbi dátumra rögzített súly csak a haladási grafikonon jelenik meg."}
+          </p>
+        </section>
       </div>
     </div>
   );

@@ -86,26 +86,57 @@ namespace backend.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateEtel(int id, [FromBody] Etel updatedEtel)
+        public async Task<IActionResult> UpdateEtel(int id, [FromBody] CreateFoodDto dto)
         {
-            if (id != updatedEtel.FoodId)
+            // 1) Modellellenőrzés
+            if (!ModelState.IsValid)
             {
-                return BadRequest("Az ID nem egyezik.");
+                return BadRequest(ModelState);
             }
 
-            var etel = await _context.Etelek.FindAsync(id);
+            // 2) Lekérjük az ételt és a hozzá tartozó kategória-kapcsolatokat
+            var etel = await _context.Etelek
+                .Include(e => e.EtelKategoriak)
+                .FirstOrDefaultAsync(e => e.FoodId == id);
+
             if (etel == null)
             {
                 return NotFound();
             }
 
-            etel.Name = updatedEtel.Name;
-            etel.Calories = updatedEtel.Calories;
-            etel.Protein = updatedEtel.Protein;
-            etel.Carbs = updatedEtel.Carbs;
-            etel.Fats = updatedEtel.Fats;
+            // 3) Alapadatok frissítése
+            etel.Name = dto.Name;
+            etel.Calories = dto.Calories;
+            etel.Protein = dto.Protein;
+            etel.Carbs = dto.Carbs;
+            etel.Fats = dto.Fats;
 
+            // 4) Kategóriák frissítése
+            // Megnézzük, mik voltak korábban, és miket kér az új dto
+            var existingCatIds = etel.EtelKategoriak.Select(ek => ek.CategoryId).ToList();
+            var catIdsToRemove = existingCatIds.Except(dto.CategoryIds).ToList();
+            var catIdsToAdd = dto.CategoryIds.Except(existingCatIds).ToList();
+
+            // 4/a) Töröljük a régi, már nem kellő kategóriákat
+            foreach (var catId in catIdsToRemove)
+            {
+                var toRemove = etel.EtelKategoriak.FirstOrDefault(ek => ek.CategoryId == catId);
+                if (toRemove != null)
+                {
+                    _context.EtelKategoriak.Remove(toRemove);
+                }
+            }
+
+            // 4/b) Hozzáadjuk az újakat
+            foreach (var catId in catIdsToAdd)
+            {
+                etel.EtelKategoriak.Add(new EtelKategoria { FoodId = etel.FoodId, CategoryId = catId });
+            }
+
+            // 5) Mentés
             await _context.SaveChangesAsync();
+
+            // Visszaadhatsz 204 NoContent-et vagy az új modellt is
             return NoContent();
         }
 

@@ -24,29 +24,60 @@ const SettingsPage: React.FC = () => {
     if (["weight", "height", "age", "goalWeight", "calorieGoal"].includes(name)) {
       newValue = value === "" ? undefined : Number(value);
     }
+    
+    // Frissítsük a formData-t
     setFormData({ ...formData, [name]: newValue });
+    
+    // Ha a súlyt változtatják, frissítsük a progressRecords is, ha mai napra vonatkozik
+    if (name === "weight") {
+      const todayIso = new Date().toISOString().split("T")[0];
+      const weightValue = newValue;
+      
+      if (!isNaN(weightValue)) {
+        const storedRecordsJson = localStorage.getItem("progressRecords");
+        let storedRecords = storedRecordsJson ? JSON.parse(storedRecordsJson) : [];
+        
+        const existingIndex = storedRecords.findIndex((r: any) =>
+          new Date(r.date).toISOString().split("T")[0] === todayIso
+        );
+        
+        const newRecord = {
+          date: todayIso + "T00:00:00Z",
+          weight: weightValue
+        };
+        
+        if (existingIndex !== -1) {
+          storedRecords[existingIndex] = newRecord;
+        } else {
+          storedRecords.push(newRecord);
+        }
+        
+        localStorage.setItem("progressRecords", JSON.stringify(storedRecords));
+      }
+    }
   };
 
+  // Hiányzó handleSubmit függvény implementálása
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData) return;
+    
     setSaving(true);
     setError("");
     setSuccessMessage("");
+    
     try {
       const success = await updateUserData(formData);
       if (success) {
-        // Frissítsük a felhasználói adatokat a sikeres mentés után
         await refreshUserData();
-        setSuccessMessage("Adatok sikeresen frissítve!");
-        // Időzítő, hogy az üzenet 3 másodperc után eltűnjön
+        setSuccessMessage("A beállítások sikeresen mentve!");
         setTimeout(() => setSuccessMessage(""), 3000);
       } else {
-        setError(userError || "Hiba történt a felhasználói adatok frissítésekor.");
+        setError("Hiba történt a beállítások mentése során.");
       }
-    } catch (err) {
-      console.error("Update user error:", err);
-      setError("Hiba történt a felhasználói adatok frissítésekor.");
+    } catch (error) {
+      console.error("Error saving settings:", error);
+      setError("Váratlan hiba történt a beállítások mentése során.");
     } finally {
       setSaving(false);
     }
@@ -189,16 +220,6 @@ const SettingsPage: React.FC = () => {
                     id="goalDate"
                     name="goalDate"
                     value={formData.goalDate ? formData.goalDate.split("T")[0] : ""}
-                    onChange={handleChange}
-                  />
-                </div>
-                <div className="form-group full-width">
-                  <label htmlFor="calorieGoal">Kalória cél:</label>
-                  <input
-                    type="number"
-                    id="calorieGoal"
-                    name="calorieGoal"
-                    value={formData.calorieGoal !== undefined ? formData.calorieGoal : ""}
                     onChange={handleChange}
                   />
                 </div>
