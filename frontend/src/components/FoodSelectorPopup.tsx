@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import "./FoodSelectorPopup.css";
 import { X } from "lucide-react";
+import "./FoodSelectorPopup.css";
 
 interface Kategoria {
   categoryId: number;
@@ -18,52 +18,62 @@ export interface Etel {
   protein: number;
   carbs: number;
   fats: number;
-  // Az ételhez tartozó kategóriák, ha vannak
   etelKategoriak?: EtelKategoria[];
 }
 
 interface FoodSelectorPopupProps {
   onFoodSelect: (food: Etel) => void;
   onClose: () => void;
-  mealType: string; // Az induló étkezési típus (pl. "Ebéd")
+  mealType: string; // például "Ebéd"
 }
+
+// Modul-szintű cache: egyszer letöltjük az ételeket, majd ezt a változót használjuk.
+let cachedFoods: Etel[] | null = null;
+
+const useFoods = (): Etel[] => {
+  const [foods, setFoods] = useState<Etel[]>([]);
+
+  useEffect(() => {
+    // Try to get foods from localStorage first
+    const cachedFoodsJson = localStorage.getItem('cachedFoods');
+    
+    if (cachedFoodsJson) {
+      setFoods(JSON.parse(cachedFoodsJson));
+    } else {
+      // If not in localStorage, fetch from API
+      fetch("http://localhost:5162/api/Etel")
+        .then(response => response.json())
+        .then(data => {
+          const foodList = data.$values || data;
+          // Store in localStorage for future use
+          localStorage.setItem('cachedFoods', JSON.stringify(foodList));
+          setFoods(foodList);
+        })
+        .catch(err => console.error("Hiba az ételek lekérésekor:", err));
+    }
+  }, []);
+
+  return foods;
+};
 
 const FoodSelectorPopup: React.FC<FoodSelectorPopupProps> = ({
   onFoodSelect,
   onClose,
   mealType,
 }) => {
-  const [foods, setFoods] = useState<Etel[]>([]);
+  const foods = useFoods();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedMealType, setSelectedMealType] = useState(mealType);
 
   const mealTypes = ["Reggeli", "Ebéd", "Snack", "Vacsora"];
 
-  useEffect(() => {
-    fetch("http://localhost:5162/api/Etel")
-      .then(response => response.json())
-      .then(data => {
-        if (data && data.$values) {
-          setFoods(data.$values);
-        } else if (Array.isArray(data)) {
-          setFoods(data);
-        } else {
-          console.error("Váratlan adatstruktúra:", data);
-          setFoods([]);
-        }
-      })
-      .catch(err => console.error("Hiba az ételek lekérésekor:", err));
-  }, []);
-
-  // Szűrés:
-  // Ha az ételhez nincs kategória (etelKategoriak hiányzik vagy üres), akkor azt minden nézetben megjelenítjük.
-  // Ha vannak kategóriák, akkor csak akkor jelenik meg, ha valamelyik kategória neve egyezik a selectedMealType értékkel.
   const filteredFoods = foods.filter(food => {
     const matchesSearch =
       searchTerm === "" ||
       food.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory =
-      !food.etelKategoriak || food.etelKategoriak.length === 0 ||
+      !food.etelKategoriak ||
+      food.etelKategoriak.length === 0 ||
       food.etelKategoriak.some(
         ek =>
           ek.kategoria &&
@@ -74,7 +84,7 @@ const FoodSelectorPopup: React.FC<FoodSelectorPopupProps> = ({
 
   return (
     <div className="popup-overlay" onClick={onClose}>
-      <div className="popup-content" onClick={(e) => e.stopPropagation()}>
+      <div className="popup-content" onClick={e => e.stopPropagation()}>
         <div className="close-icon" onClick={onClose}>
           <X />
         </div>

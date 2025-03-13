@@ -185,7 +185,6 @@ const SettingsPage: React.FC = () => {
                     <option value="">Válassz</option>
                     <option value="férfi">Férfi</option>
                     <option value="nő">Nő</option>
-                    <option value="egyéb">Egyéb</option>
                   </select>
                 </div>
                 <div className="form-group">

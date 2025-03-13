@@ -51,7 +51,7 @@ const ProgressPage: React.FC = () => {
       setLoading(false);
     };
     fetchAllData();
-  }, [refreshUserData]);
+  }, []);
 
   useEffect(() => {
     if (user && newWeight === undefined && user.weight !== undefined) {
@@ -280,7 +280,6 @@ const ProgressPage: React.FC = () => {
         </div>
         <nav className="sidebar-nav">
           <button onClick={() => navigate("/dashboard")}>Áttekintés</button>
-          <button onClick={() => navigate("/weekly-menu")}>Heti Menü</button>
           <button onClick={() => navigate("/progress")} className="active">
             Haladás
           </button>

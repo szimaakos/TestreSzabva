@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 
 export interface Felhasznalo {
   id: string;
@@ -45,7 +45,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [caloriesConsumed, setCaloriesConsumed] = useState<number>(0);
 
   // Új függvény a felhasználói adatok frissítéséhez
-  const refreshUserData = async () => {
+  const refreshUserData = useCallback(async () => {
     setLoading(true);
     setError(null);
     
@@ -77,14 +77,14 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   // Az eredeti userEffect loadUserData helyett most meghívjuk a refreshUserData-t
   useEffect(() => {
     refreshUserData();
   }, []);
 
-  const updateUserData = async (userData: Felhasznalo): Promise<boolean> => {
+  const updateUserData = useCallback(async (userData: Felhasznalo): Promise<boolean> => {
     setError(null);
     const userId = localStorage.getItem("userId");
     const token = localStorage.getItem("authToken");
@@ -105,7 +105,6 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
       
       if (response.ok) {
-        // Itt most NEM állítjuk be a user state-et, ezt a refreshUserData fogja megtenni
         return true;
       } else {
         const errorData = await response.text();
@@ -117,7 +116,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setError("Hiba történt a felhasználói adatok frissítésekor.");
       return false;
     }
-  };
+  }, []);
 
   return (
     <UserContext.Provider value={{ 
