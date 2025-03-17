@@ -23,13 +23,42 @@ const ProgressPage: React.FC = () => {
     new Date().toISOString().split("T")[0]
   );
 
-  // Hiányzó loadProgressData függvény
+  // Reszponzivitás: Sidebar állapotának és az ablakméret követése
+  const [menuOpen, setMenuOpen] = useState<boolean>(window.innerWidth > 768);
+  const [windowWidth, setWindowWidth] = useState<number>(window.innerWidth);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+      if (window.innerWidth > 768) {
+        setMenuOpen(true);
+      } else {
+        setMenuOpen(false);
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    handleResize(); // Kezdeti állapot beállítása
+
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  const toggleMenu = () => {
+    setMenuOpen(!menuOpen);
+  };
+
+  // Sidebar overlay bezárása kattintásra
+  const handleOverlayClick = () => {
+    setMenuOpen(false);
+  };
+
+  // Haladási adatok betöltése
   const loadProgressData = () => {
     try {
       const storedRecordsJson = localStorage.getItem("progressRecords");
       if (storedRecordsJson) {
         const records: ProgressRecord[] = JSON.parse(storedRecordsJson);
-        // A rekordokat dátum szerint rendezzük
+        // Rendezés dátum szerint
         records.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
         setProgressData(records);
         setWeightHistory(records);
@@ -46,7 +75,7 @@ const ProgressPage: React.FC = () => {
 
   useEffect(() => {
     const fetchAllData = async () => {
-      await refreshUserData(); // Frissítjük a felhasználó adatokat
+      await refreshUserData(); // Felhasználói adatok frissítése
       loadProgressData();
       setLoading(false);
     };
@@ -59,7 +88,7 @@ const ProgressPage: React.FC = () => {
     }
   }, [user, newWeight]);
 
-  // A súly frissítés módosítása - csak egy olyan függvényt hagytunk, amely a UserContext-et használja
+  // Súlyadat frissítése
   const handleWeightUpdate = async () => {
     if (!user || newWeight === undefined) return;
     setUpdateStatus("Feldolgozás...");
@@ -75,7 +104,6 @@ const ProgressPage: React.FC = () => {
         weight: weightValue,
       };
 
-      // LocalStorage-ból betöltjük a progress adatokat
       const storedRecordsJson = localStorage.getItem("progressRecords");
       let storedRecords: ProgressRecord[] = storedRecordsJson ? JSON.parse(storedRecordsJson) : [];
       const existingIndex = storedRecords.findIndex(r =>
@@ -88,12 +116,12 @@ const ProgressPage: React.FC = () => {
       }
       localStorage.setItem("progressRecords", JSON.stringify(storedRecords));
       
-      // Ha a mai napra vonatkozik a súlyváltozás, akkor frissítsük a felhasználói profilt is
+      // Ha a mai napról van szó, frissítsük a profil súlyát is
       const todayIso = new Date().toISOString().split("T")[0];
       if (weightLogDate === todayIso) {
         const updatedUser = { ...user, weight: weightValue };
         await updateUserData(updatedUser);
-        await refreshUserData(); // Frissítsük az adatokat a sikeres mentés után
+        await refreshUserData();
       }
       
       setUpdateStatus("Súlyadat sikeresen rögzítve!");
@@ -106,7 +134,7 @@ const ProgressPage: React.FC = () => {
     }
   };
 
-  // Dátumszűrés a kiválasztott időtartam alapján
+  // Dátumszűrés
   const filterDataByDateRange = (data: ProgressRecord[]) => {
     if (selectedDateRange === "all") return data;
     const today = new Date();
@@ -137,7 +165,7 @@ const ProgressPage: React.FC = () => {
 
   const filteredData = filterDataByDateRange(progressData);
 
-  // A súly diagram adatainak előállítása
+  // Súly diagram adatainak előállítása
   const getWeightChartData = () => {
     if (filteredData.length > 0) {
       const labels = filteredData.map(record =>
@@ -201,15 +229,12 @@ const ProgressPage: React.FC = () => {
 
   const weightChartData = getWeightChartData();
 
-  // Súlykülönbség és trend számítása - helyesen számolt százalékos értékkel
+  // Súlykülönbség és trend számítása
   const calculateWeightDifference = () => {
     if (weightHistory.length < 2) return { difference: 0, percentChange: 0, trend: "stable" };
     const oldest = weightHistory[0].weight;
     const newest = weightHistory[weightHistory.length - 1].weight;
     const difference = newest - oldest;
-    
-    // Százalékos változás helyes számítása
-    // Ha 80-ról 100-ra megy, akkor (100-80)/80 * 100 = 25% növekedés
     const percentChange = (difference / oldest) * 100;
     
     let trend = "stable";
@@ -223,24 +248,20 @@ const ProgressPage: React.FC = () => {
     };
   };
 
-  // Célsúly elérés százalékos aránya
+  // Célsúly elérés százalékos arányának számítása
   const calculateGoalProgress = () => {
     if (!user?.weight || !user?.goalWeight) return 0;
     const startWeight = weightHistory.length > 0 ? weightHistory[0].weight : user.weight;
     const currentWeightVal = user.weight;
     const goalWeight = user.goalWeight;
     
-    // Ha a kezdősúly és a célsúly megegyezik, 100%-ot adunk vissza
     if (startWeight === goalWeight) return 100;
     
-    // Súlynövelés esetén (pl. izomépítés)
     if (goalWeight > startWeight) {
       if (currentWeightVal >= goalWeight) return 100;
       if (currentWeightVal <= startWeight) return 0;
       return Math.round(((currentWeightVal - startWeight) / (goalWeight - startWeight)) * 100);
-    } 
-    // Súlycsökkentés esetén
-    else {
+    } else {
       if (currentWeightVal <= goalWeight) return 100;
       if (currentWeightVal >= startWeight) return 0;
       return Math.round(((startWeight - currentWeightVal) / (startWeight - goalWeight)) * 100);
@@ -255,7 +276,7 @@ const ProgressPage: React.FC = () => {
     return (weightKg / (heightM * heightM)).toFixed(1);
   };
 
-  // Frissített BMI kategória számítás
+  // Frissített BMI kategória meghatározása
   const getBMICategory = (bmi: number) => {
     if (bmi < 18.5) return { category: "Alulsúlyos", color: "#FFB74D" };
     if (bmi < 25) return { category: "Normál", color: "#66BB6A" };
@@ -268,7 +289,6 @@ const ProgressPage: React.FC = () => {
   const weightDiff = calculateWeightDifference();
   const goalProgress = calculateGoalProgress();
 
-  // A max dátum a mai nap
   const maxDate = new Date().toISOString().split("T")[0];
 
   const handleLogout = () => {
@@ -283,7 +303,21 @@ const ProgressPage: React.FC = () => {
 
   return (
     <div className="dashboard-container fade-in">
-      <aside className="dashboard-sidebar">
+      {/* Hamburger menü ikon mobil nézethez */}
+      <div className={`hamburger-menu ${menuOpen ? "open" : ""}`} onClick={toggleMenu}>
+        <div></div>
+        <div></div>
+        <div></div>
+      </div>
+
+      {/* Overlay a mobil sidebar mögött */}
+      <div 
+        className={`sidebar-overlay ${menuOpen && windowWidth <= 768 ? "active" : ""}`}
+        onClick={handleOverlayClick}
+      ></div>
+
+      {/* Sidebar: open/closed állapot alapján */}
+      <aside className={`dashboard-sidebar ${menuOpen ? "open" : "closed"}`}>
         <div className="sidebar-header">
           <h2>TestreSzabva</h2>
         </div>
@@ -301,6 +335,7 @@ const ProgressPage: React.FC = () => {
           </button>
         </div>
       </aside>
+
       <div className="dashboard-content progress-content">
         <header className="content-header">
           <h1>Haladás követése</h1>
@@ -319,7 +354,7 @@ const ProgressPage: React.FC = () => {
                 {weightDiff.difference > 0 ? "+" : ""}
                 {weightDiff.difference.toFixed(1)} kg
                 <span className="trend-arrow">
-                  {" "}({weightDiff.percentChange.toFixed(1)}%)
+                  ({weightDiff.percentChange.toFixed(1)}%)
                   {weightDiff.trend === "increasing" ? " ↑" : " ↓"}
                 </span>
               </div>
@@ -398,7 +433,9 @@ const ProgressPage: React.FC = () => {
             <input
               type="number"
               value={newWeight ?? ''}
-              onChange={(e) => setNewWeight(e.target.value ? parseFloat(e.target.value) : undefined)}
+              onChange={(e) =>
+                setNewWeight(e.target.value ? parseFloat(e.target.value) : undefined)
+              }
               placeholder="Írd be a súlyodat (kg)"
               step="0.1"
             />
