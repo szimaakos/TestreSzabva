@@ -698,9 +698,14 @@ const ReceptekPage: React.FC = () => {
     recipe.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // A featured receptekhez használjuk a filteredRecipes egy részét (például index 34–39)
+  // A featured receptekhez egy szeletet használunk (például index 34–39)
   const featuredRecipes = filteredRecipes.slice(34, 40);
   const [activeIndex, setActiveIndex] = useState<number>(0);
+
+  // Húzással történő navigációhoz (swipe/drag)
+  const [dragStart, setDragStart] = useState<number | null>(null);
+  const [dragEnd, setDragEnd] = useState<number | null>(null);
+  const minSwipeDistance = 50;
 
   const prevSlide = () => {
     setActiveIndex((prev) => (prev - 1 + featuredRecipes.length) % featuredRecipes.length);
@@ -708,6 +713,56 @@ const ReceptekPage: React.FC = () => {
 
   const nextSlide = () => {
     setActiveIndex((prev) => (prev + 1) % featuredRecipes.length);
+  };
+
+  // Touch események
+  const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    setDragStart(e.touches[0].clientX);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+    setDragEnd(e.touches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (dragStart === null || dragEnd === null) return;
+    const distance = dragStart - dragEnd;
+    if (distance > minSwipeDistance) {
+      nextSlide();
+    } else if (distance < -minSwipeDistance) {
+      prevSlide();
+    }
+    setDragStart(null);
+    setDragEnd(null);
+  };
+
+  // Mouse események (asztali gép esetén)
+  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    setDragStart(e.clientX);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (dragStart !== null) {
+      setDragEnd(e.clientX);
+    }
+  };
+
+  const handleMouseUp = () => {
+    if (dragStart === null || dragEnd === null) return;
+    const distance = dragStart - dragEnd;
+    if (distance > minSwipeDistance) {
+      nextSlide();
+    } else if (distance < -minSwipeDistance) {
+      prevSlide();
+    }
+    setDragStart(null);
+    setDragEnd(null);
+  };
+
+  const handleMouseLeave = () => {
+    if (dragStart !== null && dragEnd !== null) {
+      handleMouseUp();
+    }
   };
 
   // Reszponzivitás: Sidebar állapotának és az ablakméret követése
@@ -794,10 +849,16 @@ const ReceptekPage: React.FC = () => {
           <section className="featured-recipes">
             <h2>Ezeket az ételeket fogyasztják legszívesebben felhasználóink!</h2>
             <div className="carousel-wrapper">
-              <button className="carousel-button prev" onClick={prevSlide}>
-                ‹
-              </button>
-              <div className="carousel">
+              <div 
+                className="carousel"
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
+                onMouseDown={handleMouseDown}
+                onMouseMove={handleMouseMove}
+                onMouseUp={handleMouseUp}
+                onMouseLeave={handleMouseLeave}
+              >
                 {featuredRecipes.map((recipe: Recipe, index) => {
                   let className = "carousel-card";
                   if (index === activeIndex) {
@@ -820,9 +881,6 @@ const ReceptekPage: React.FC = () => {
                   );
                 })}
               </div>
-              <button className="carousel-button next" onClick={nextSlide}>
-                ›
-              </button>
             </div>
           </section>
         )}
