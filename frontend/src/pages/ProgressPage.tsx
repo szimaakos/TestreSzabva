@@ -319,7 +319,9 @@ const ProgressPage: React.FC = () => {
       {/* Sidebar: open/closed állapot alapján */}
       <aside className={`dashboard-sidebar ${menuOpen ? "open" : "closed"}`}>
         <div className="sidebar-header">
-          <h2>TestreSzabva</h2>
+        <h2 onClick={() => navigate("/")} className="logo animated-logo">
+            TestreSzabva
+          </h2>
         </div>
         <nav className="sidebar-nav">
           <button onClick={() => navigate("/dashboard")}>Áttekintés</button>

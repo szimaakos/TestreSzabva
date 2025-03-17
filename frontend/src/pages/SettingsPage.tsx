@@ -1,11 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./SettingsPage.css";
-import { useUser, Felhasznalo } from '../context/UserContext'
- 
+import { useUser, Felhasznalo } from "../context/UserContext";
+
 const SettingsPage: React.FC = () => {
   const navigate = useNavigate();
-  const { user, loading: userLoading, error: userError, updateUserData, refreshUserData } = useUser();
+  const {
+    user,
+    loading: userLoading,
+    updateUserData,
+    refreshUserData,
+  } = useUser();
   const [formData, setFormData] = useState<Felhasznalo | null>(null);
   const [saving, setSaving] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
@@ -17,55 +22,48 @@ const SettingsPage: React.FC = () => {
     }
   }, [user]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     if (!formData) return;
     const { name, value } = e.target;
     let newValue: any = value;
     if (["weight", "height", "age", "goalWeight", "calorieGoal"].includes(name)) {
       newValue = value === "" ? undefined : Number(value);
     }
-    
-    // Frissítsük a formData-t
     setFormData({ ...formData, [name]: newValue });
-    
-    // Ha a súlyt változtatják, frissítsük a progressRecords is, ha mai napra vonatkozik
+
+    // Ha a súlyt változtatják, frissítjük a progressRecords-t (mai napra)
     if (name === "weight") {
       const todayIso = new Date().toISOString().split("T")[0];
       const weightValue = newValue;
-      
       if (!isNaN(weightValue)) {
         const storedRecordsJson = localStorage.getItem("progressRecords");
         let storedRecords = storedRecordsJson ? JSON.parse(storedRecordsJson) : [];
-        
         const existingIndex = storedRecords.findIndex((r: any) =>
           new Date(r.date).toISOString().split("T")[0] === todayIso
         );
-        
         const newRecord = {
           date: todayIso + "T00:00:00Z",
-          weight: weightValue
+          weight: weightValue,
         };
-        
         if (existingIndex !== -1) {
           storedRecords[existingIndex] = newRecord;
         } else {
           storedRecords.push(newRecord);
         }
-        
         localStorage.setItem("progressRecords", JSON.stringify(storedRecords));
       }
     }
   };
 
-  // Hiányzó handleSubmit függvény implementálása
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData) return;
-    
     setSaving(true);
     setError("");
     setSuccessMessage("");
-    
+
     try {
       const success = await updateUserData(formData);
       if (success) {
@@ -89,13 +87,58 @@ const SettingsPage: React.FC = () => {
     navigate("/");
   };
 
+  // Responsive sidebar: követjük az ablakméretet, és állapot alapján megjelenítjük a sidebart
+  const [menuOpen, setMenuOpen] = useState<boolean>(window.innerWidth > 768);
+  const [windowWidth, setWindowWidth] = useState<number>(window.innerWidth);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+      if (window.innerWidth > 768) {
+        setMenuOpen(true);
+      } else {
+        setMenuOpen(false);
+      }
+    };
+    window.addEventListener("resize", handleResize);
+    handleResize(); // Kezdeti állapot beállítása
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  const toggleMenu = () => {
+    setMenuOpen(!menuOpen);
+  };
+
+  const handleOverlayClick = () => {
+    setMenuOpen(false);
+  };
+
   if (userLoading) {
     return <div className="dashboard-container">Betöltés...</div>;
   }
 
   return (
     <div className="dashboard-container">
-      <aside className="dashboard-sidebar">
+      {/* Hamburger menü mobil nézetben */}
+      <div
+        className={`hamburger-menu ${menuOpen ? "open" : ""}`}
+        onClick={toggleMenu}
+      >
+        <div></div>
+        <div></div>
+        <div></div>
+      </div>
+
+      {/* Overlay a mobil sidebar mögött */}
+      <div
+        className={`sidebar-overlay ${
+          menuOpen && windowWidth <= 768 ? "active" : ""
+        }`}
+        onClick={handleOverlayClick}
+      ></div>
+
+      {/* Sidebar */}
+      <aside className={`dashboard-sidebar ${menuOpen ? "open" : "closed"}`}>
         <div className="sidebar-header">
           <h2 onClick={() => navigate("/")} className="logo animated-logo">
             TestreSzabva
@@ -114,6 +157,7 @@ const SettingsPage: React.FC = () => {
         </div>
       </aside>
 
+      {/* Fő tartalom */}
       <div className="dashboard-content">
         <div className="settings-container">
           <div className="settings-card">
