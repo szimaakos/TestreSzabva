@@ -67,7 +67,6 @@ body, html {
   font-weight: 700;
   color: #e30b5c;
   margin-bottom: 2rem;
-  margin-left: 3.5rem;
 }
   
 .sidebar-nav button {
@@ -278,5 +277,13 @@ body, html {
   
   .content-header p {
     font-size: 0.9rem;
+  }
+
+  .sidebar-header h2 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #e30b5c;
+    margin-bottom: 2rem;
+    margin-left: 3.5rem;
   }
 }

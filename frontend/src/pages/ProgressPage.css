@@ -60,7 +60,6 @@ body, html {
   font-weight: 700;
   color: #e30b5c;
   margin-bottom: 2rem;
-  margin-left: 3.5rem;
 }
 
 .sidebar-nav {
@@ -513,5 +512,13 @@ body, html {
   .progress-section,
   .weight-update-section {
     padding: 15px;
+  }
+
+  .sidebar-header h2 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #e30b5c;
+    margin-bottom: 2rem;
+    margin-left: 3.5rem;
   }
 }
