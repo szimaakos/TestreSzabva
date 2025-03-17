@@ -1,324 +1,390 @@
+/* Reset és alapstílusok */
 * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-  }
-  
-  body,
-  html {
-    overflow-x: hidden;
-    font-family: "Open Sans", sans-serif;
-    background-color: #ffffff;
-    color: #333;
-    animation: fadeInPage 1s ease-in-out;
-  }
-  
-  @keyframes fadeInPage {
-    from {
-      opacity: 0;
-    }
-    to {
-      opacity: 1;
-    }
-  }
-  
-  .dashboard-container {
-    display: flex;
-    min-height: 100vh;
-  }
-  
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body,
+html {
+  overflow-x: hidden;
+  font-family: "Open Sans", sans-serif;
+  background-color: #ffffff;
+  color: #333;
+  animation: fadeInPage 1s ease-in-out;
+}
+
+@keyframes fadeInPage {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Dashboard konténer */
+.dashboard-container {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* Hamburger menü ikon */
+.hamburger-menu {
+  display: none;
+  cursor: pointer;
+  padding: 10px;
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  z-index: 1001;
+  background-color: #f8f8f8;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.hamburger-menu div {
+  width: 25px;
+  height: 3px;
+  background-color: #e30b5c;
+  margin: 5px 0;
+  transition: 0.3s;
+}
+
+.hamburger-menu.open div:nth-child(1) {
+  transform: rotate(-45deg) translate(-5px, 6px);
+}
+
+.hamburger-menu.open div:nth-child(2) {
+  opacity: 0;
+}
+
+.hamburger-menu.open div:nth-child(3) {
+  transform: rotate(45deg) translate(-5px, -6px);
+}
+
+/* Sidebar Overlay */
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0,0,0,0.5);
+  z-index: 999;
+}
+
+.sidebar-overlay.active {
+  display: block;
+}
+
+/* Sidebar */
+.dashboard-sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 250px;
+  overflow-y: auto;
+  z-index: 1000;
+  background-color: #f8f8f8;
+  padding: 20px;
+  box-shadow: 2px 0 4px rgba(0,0,0,0.1);
+  transition: transform 0.3s ease;
+}
+
+.dashboard-sidebar.closed {
+  transform: translateX(-100%);
+}
+
+.dashboard-sidebar.open {
+  transform: translateX(0);
+}
+
+.sidebar-header h2 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #e30b5c;
+  margin-bottom: 2rem;
+}
+
+.sidebar-nav button {
+  background: none;
+  border: none;
+  color: #333;
+  padding: 0.75rem 0;
+  text-align: left;
+  width: 100%;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color 0.3s;
+}
+
+.sidebar-nav button:hover,
+.sidebar-nav button.active {
+  color: #e30b5c;
+}
+
+.sidebar-footer {
+  margin-top: auto;
+  text-align: center;
+}
+
+.logout-button {
+  background-color: #e30b5c;
+  border: none;
+  padding: 8px 16px;
+  width: 100%;
+  color: #fff;
+  font-size: 14px;
+  cursor: pointer;
+  border-radius: 24px;
+  transition: background-color 0.3s, box-shadow 0.2s;
+  box-shadow: 0 2px 4px rgba(227, 11, 92, 0.15);
+}
+
+.logout-button:hover {
+  background-color: #c7094f;
+}
+
+/* Dashboard Tartalom */
+.dashboard-content {
+  flex: 1;
+  padding: 20px;
+  color: #333;
+  animation: fadeIn 0.8s ease-out;
+  margin-left: 250px;
+  width: calc(100% - 250px);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.content-header h1 {
+  font-size: 2rem;
+  color: #333;
+  margin-bottom: 0.5rem;
+}
+
+.content-header p {
+  font-size: 1rem;
+  color: #666;
+  margin-bottom: 2rem;
+}
+
+/* Receptek oldalspecifikus stílusok */
+.receptek-content {
+  background-color: #f9f9f9;
+}
+
+.search-bar {
+  margin-bottom: 30px;
+}
+
+.search-bar input {
+  width: 100%;
+  padding: 12px;
+  font-size: 1rem;
+  border: 2px solid #ddd;
+  border-radius: 4px;
+  transition: border-color 0.3s;
+}
+
+.search-bar input:focus {
+  outline: none;
+  border-color: #e30b5c;
+}
+
+/* Carousel (Featured receptek) */
+.carousel-wrapper {
+  position: relative;
+  margin: 20px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.carousel {
+  position: relative;
+  width: 100%;
+  max-width: 800px;
+  height: 300px;
+  perspective: 1000px;
+  overflow: visible;
+}
+
+.carousel-card {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 300px;
+  height: 200px;
+  transform: translate(-50%, -50%);
+  transition: transform 0.5s ease, opacity 0.5s ease;
+  opacity: 0;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  background-color: #fff;
+}
+
+.carousel-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.carousel-card .carousel-info {
+  padding: 10px;
+  background: rgba(255,255,255,0.9);
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+}
+
+.carousel-card.active {
+  transform: translate(-50%, -50%) scale(1);
+  opacity: 1;
+  z-index: 2;
+}
+
+.carousel-card.prev {
+  transform: translate(-150%, -50%) scale(0.8) rotateY(15deg);
+  opacity: 0.7;
+  z-index: 1;
+}
+
+.carousel-card.next {
+  transform: translate(50%, -50%) scale(0.8) rotateY(-15deg);
+  opacity: 0.7;
+  z-index: 1;
+}
+
+.carousel-card.hidden {
+  opacity: 0;
+  z-index: 0;
+}
+
+/* Carousel gombok */
+.carousel-button {
+  background-color: #e30b5c;
+  border: none;
+  color: #fff;
+  font-size: 2rem;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform 0.3s ease, background-color 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3;
+  outline: none;
+}
+
+.carousel-button:hover {
+  transform: scale(1.1);
+  background-color: #bf0950;
+}
+
+.carousel-button:active {
+  transform: scale(0.95);
+}
+
+/* All Recipes */
+.all-recipes h2 {
+  font-size: 1.8rem;
+  color: #e30b5c;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.recipes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.recipe-card {
+  background-color: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s;
+}
+
+.recipe-card:hover {
+  transform: translateY(-5px);
+}
+
+.recipe-image {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+}
+
+.recipe-content {
+  padding: 15px;
+}
+
+.recipe-title {
+  font-size: 1.6rem;
+  color: #e30b5c;
+  margin-bottom: 10px;
+}
+
+.recipe-description {
+  font-size: 1rem;
+  color: #555;
+  margin-bottom: 10px;
+}
+
+.recipe-details {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.recipe-details h4 {
+  font-size: 1rem;
+  color: #e30b5c;
+  margin-bottom: 5px;
+}
+
+.recipe-details ul,
+.recipe-details ol {
+  margin-left: 20px;
+  line-height: 1.5;
+}
+
+/* Responsive módosítások */
+@media (max-width: 768px) {
   .dashboard-sidebar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    height: 100vh;
-    width: 250px; 
-    overflow-y: auto; 
-    z-index: 1000; 
-  }
-  
-  
-  .sidebar-header h2 {
-    font-size: 24px;
-    font-weight: 700;
-    color: #e30b5c;
-    margin-bottom: 2rem;
-  }
-  
-  .sidebar-nav button {
-    background: none;
-    border: none;
-    color: #333;
-    padding: 0.75rem 0;
-    text-align: left;
-    width: 100%;
-    font-size: 16px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: color 0.3s;
-  }
-  
-  .sidebar-nav button:hover,
-  .sidebar-nav button.active {
-    color: #e30b5c;
-  }
-  
-  .sidebar-footer {
-    margin-top: auto;
-    text-align: center;
-  }
-  
-  .logout-button {
-    background-color: #e30b5c;
-    border: none;
-    padding: 8px 16px;
-    width: 100%;
-    color: #fff;
-    font-size: 14px;
-    cursor: pointer;
-    border-radius: 24px;
-    transition: background-color 0.3s, box-shadow 0.2s;
-    box-shadow: 0 2px 4px rgba(227, 11, 92, 0.15);
-  }
-  
-  .logout-button:hover {
-    background-color: #c7094f;
+    width: 200px;
   }
   
   .dashboard-content {
-    flex: 1;
-    padding: 20px;
-    color: #333;
-    animation: fadeIn 0.8s ease-out;
-    margin-left: 250px; /* Ugyanaz az érték, mint a sidebar szélessége */
-    width: calc(100% - 250px); /* Teljes szélesség mínusz a sidebar szélessége */
-  }
-  
-  @keyframes fadeIn {
-    from {
-      opacity: 0;
-      transform: translateY(10px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-  
-  .content-header h1 {
-    font-size: 2rem;
-    color: #333;
-    margin-bottom: 0.5rem;
-  }
-  
-  .content-header p {
-    font-size: 1rem;
-    color: #666;
-    margin-bottom: 2rem;
-  }
-  
-  .receptek-content {
-    background-color: #f9f9f9;
-  }
-  
-  .search-bar {
-    margin-bottom: 30px;
-  }
-  
-  .search-bar input {
+    margin-left: 0;
+    padding: 1rem;
     width: 100%;
-    padding: 12px;
-    font-size: 1rem;
-    border: 2px solid #ddd;
-    border-radius: 4px;
-    transition: border-color 0.3s;
-  }
-  
-  .search-bar input:focus {
-    outline: none;
-    border-color: #e30b5c;
-  }
-  
-  .featured-recipes {
-    margin-bottom: 40px;
-  }
-  
-  .featured-recipes h2 {
-    font-size: 1.8rem;
-    color: #e30b5c;
-    margin-bottom: 20px;
-    text-align: center;
-  }
-  
-  .slider-wrapper {
-    position: relative;
-    margin: 20px 0;
-    overflow: visible;
-  }
-  
-  .featured-recipes-slider {
-    display: flex;
-    overflow-x: auto;
-    scroll-behavior: smooth;
-    gap: 20px;
-    padding-bottom: 10px;
-    width: 100%;
-  }
-  
-  .featured-recipes-slider::-webkit-scrollbar {
-    display: none;
-  }
-  .featured-recipes-slider {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
-  
-  .featured-recipe-card {
-    flex: 0 0 auto;
-    min-width: 250px;
-    max-width: 300px;
-    background-color: #fff;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s;
-  }
-  
-  .featured-recipe-card:hover {
-    transform: translateY(-5px);
-  }
-  
-  .featured-recipe-card img {
-    width: 100%;
-    height: 180px;
-    object-fit: cover;
-    border-top-left-radius: 8px;
-    border-top-right-radius: 8px;
-  }
-  
-  .featured-recipe-info {
-    padding: 15px;
-  }
-  
-  .featured-recipe-info h3 {
-    font-size: 1.4rem;
-    color: #e30b5c;
-    margin-bottom: 8px;
-  }
-  
-  .featured-recipe-info p {
-    font-size: 0.95rem;
-    color: #555;
-  }
-  
-  .slider-button {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    background-color: rgba(0, 0, 0, 0.5);
-    border: none;
-    color: #fff;
-    font-size: 1.5rem;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    z-index: 2;
-    outline: none;
-  }
-  
-  .slider-button.prev {
-    left: -20px;
-  }
-  
-  .slider-button.next {
-    right: -20px;
-  }
-  
-  .slider-button:hover {
-    background-color: rgba(0, 0, 0, 0.7);
-  }
-  
-  .all-recipes h2 {
-    font-size: 1.8rem;
-    color: #e30b5c;
-    margin-bottom: 20px;
-    text-align: center;
-  }
-  
-  .recipes-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 20px;
-  }
-  
-  .recipe-card {
-    background-color: #fff;
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s;
-  }
-  
-  .recipe-card:hover {
-    transform: translateY(-5px);
   }
   
   .recipe-image {
-    width: 100%;
-    height: 200px;
-    object-fit: cover;
+    height: 150px;
   }
-  
-  .recipe-content {
+}
+
+@media (max-width: 576px) {
+  .dashboard-content {
     padding: 15px;
   }
   
-  .recipe-title {
-    font-size: 1.6rem;
-    color: #e30b5c;
-    margin-bottom: 10px;
+  .search-bar input {
+    font-size: 0.9rem;
   }
   
-  .recipe-description {
-    font-size: 1rem;
-    color: #555;
-    margin-bottom: 10px;
+  .recipes-grid {
+    grid-template-columns: 1fr;
   }
-  
-  .recipe-details {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-  }
-  
-  .recipe-details h4 {
-    font-size: 1rem;
-    color: #e30b5c;
-    margin-bottom: 5px;
-  }
-  
-  .recipe-details ul,
-  .recipe-details ol {
-    margin-left: 20px;
-    line-height: 1.5;
-  }
-  
-  @media (max-width: 768px) {
-    .dashboard-sidebar {
-      width: 200px;
-    }
-    .dashboard-content {
-      padding: 1rem;
-    }
-    .featured-recipes-slider {
-      flex-direction: column;
-    }
-    .recipe-image {
-      height: 150px;
-    }
-  }
-
-  
+}

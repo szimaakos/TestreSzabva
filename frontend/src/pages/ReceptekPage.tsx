@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./ReceptekPage.css";
 import avokadoPiritos from "../images/avokadoPiritos.jpeg";
@@ -694,23 +694,67 @@ const recipesData: Recipe[] = [
 const ReceptekPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
-  const sliderRef = useRef<HTMLDivElement>(null);
-  const filteredRecipes = recipesData.filter((recipe) =>
+  const filteredRecipes = recipesData.filter((recipe: Recipe) =>
     recipe.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
-  const scrollLeft = () => {
-    if (sliderRef.current) {
-      sliderRef.current.scrollBy({ left: -300, behavior: "smooth" });
-    }
+
+  // A featured receptekhez használjuk a filteredRecipes egy részét (például index 34–39)
+  const featuredRecipes = filteredRecipes.slice(34, 40);
+  const [activeIndex, setActiveIndex] = useState<number>(0);
+
+  const prevSlide = () => {
+    setActiveIndex((prev) => (prev - 1 + featuredRecipes.length) % featuredRecipes.length);
   };
-  const scrollRight = () => {
-    if (sliderRef.current) {
-      sliderRef.current.scrollBy({ left: 300, behavior: "smooth" });
-    }
+
+  const nextSlide = () => {
+    setActiveIndex((prev) => (prev + 1) % featuredRecipes.length);
   };
+
+  // Reszponzivitás: Sidebar állapotának és az ablakméret követése
+  const [menuOpen, setMenuOpen] = useState<boolean>(window.innerWidth > 768);
+  const [windowWidth, setWindowWidth] = useState<number>(window.innerWidth);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+      if (window.innerWidth > 768) {
+        setMenuOpen(true);
+      } else {
+        setMenuOpen(false);
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    handleResize(); // Kezdeti állapot
+
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  const toggleMenu = () => {
+    setMenuOpen(!menuOpen);
+  };
+
+  const handleOverlayClick = () => {
+    setMenuOpen(false);
+  };
+
   return (
     <div className="dashboard-container">
-      <aside className="dashboard-sidebar">
+      {/* Hamburger menü ikon mobil nézethez */}
+      <div className={`hamburger-menu ${menuOpen ? "open" : ""}`} onClick={toggleMenu}>
+        <div></div>
+        <div></div>
+        <div></div>
+      </div>
+
+      {/* Overlay a mobil sidebar mögött */}
+      <div 
+        className={`sidebar-overlay ${menuOpen && windowWidth <= 768 ? "active" : ""}`}
+        onClick={handleOverlayClick}
+      ></div>
+
+      {/* Sidebar */}
+      <aside className={`dashboard-sidebar ${menuOpen ? "open" : "closed"}`}>
         <div className="sidebar-header">
           <h2>TestreSzabva</h2>
         </div>
@@ -728,12 +772,13 @@ const ReceptekPage: React.FC = () => {
           </button>
         </div>
       </aside>
+
       <div className="dashboard-content receptek-content">
         <header className="content-header">
           <h1>Receptek</h1>
           <p>
-            Fedezd fel a tápláló, ízletes recepteket, melyek nemcsak az egészségedet
-            támogatják, de inspirációt adnak a változatos étrendhez!
+            Fedezd fel a tápláló, ízletes recepteket, melyek nemcsak az egészségedet támogatják,
+            de inspirációt adnak a változatos étrendhez!
           </p>
         </header>
         <div className="search-bar">
@@ -744,34 +789,48 @@ const ReceptekPage: React.FC = () => {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        {searchTerm.trim() === "" && (
+
+        {searchTerm.trim() === "" && featuredRecipes.length > 0 && (
           <section className="featured-recipes">
             <h2>Ezeket az ételeket fogyasztják legszívesebben felhasználóink!</h2>
-            <div className="slider-wrapper">
-              <button className="slider-button prev" onClick={scrollLeft}>
+            <div className="carousel-wrapper">
+              <button className="carousel-button prev" onClick={prevSlide}>
                 ‹
               </button>
-              <div className="featured-recipes-slider" ref={sliderRef}>
-                {filteredRecipes.slice(34, 40).map((recipe) => (
-                  <div key={recipe.id} className="featured-recipe-card">
-                    <img src={recipe.image} alt={recipe.title} />
-                    <div className="featured-recipe-info">
-                      <h3>{recipe.title}</h3>
-                      <p>{recipe.description}</p>
+              <div className="carousel">
+                {featuredRecipes.map((recipe: Recipe, index) => {
+                  let className = "carousel-card";
+                  if (index === activeIndex) {
+                    className += " active";
+                  } else if (index === (activeIndex - 1 + featuredRecipes.length) % featuredRecipes.length) {
+                    className += " prev";
+                  } else if (index === (activeIndex + 1) % featuredRecipes.length) {
+                    className += " next";
+                  } else {
+                    className += " hidden";
+                  }
+                  return (
+                    <div key={recipe.id} className={className}>
+                      <img src={recipe.image} alt={recipe.title} />
+                      <div className="carousel-info">
+                        <h3>{recipe.title}</h3>
+                        <p>{recipe.description}</p>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
-              <button className="slider-button next" onClick={scrollRight}>
+              <button className="carousel-button next" onClick={nextSlide}>
                 ›
               </button>
             </div>
           </section>
         )}
+
         <section className="all-recipes">
           <h2>Receptjeink</h2>
           <div className="recipes-grid">
-            {filteredRecipes.map((recipe) => (
+            {filteredRecipes.map((recipe: Recipe) => (
               <div key={recipe.id} className="recipe-card">
                 <img src={recipe.image} alt={recipe.title} className="recipe-image" />
                 <div className="recipe-content">
