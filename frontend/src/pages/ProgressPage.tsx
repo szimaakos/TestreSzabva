@@ -51,7 +51,7 @@ const ProgressPage: React.FC = () => {
       setLoading(false);
     };
     fetchAllData();
-  }, []);
+  }, [refreshUserData]);
 
   useEffect(() => {
     if (user && newWeight === undefined && user.weight !== undefined) {
@@ -151,6 +151,8 @@ const ProgressPage: React.FC = () => {
             label: "Súly (kg)",
             data: weightDataArr,
             fill: false,
+            borderColor: "#e30b5c",
+            backgroundColor: "#e30b5c",
             tension: 0.3,
             segment: {
               borderColor: (ctx: any) => {
@@ -199,13 +201,15 @@ const ProgressPage: React.FC = () => {
 
   const weightChartData = getWeightChartData();
 
-  // Súlykülönbség és trend számítása - %-os értékkel kiegészítve
+  // Súlykülönbség és trend számítása - helyesen számolt százalékos értékkel
   const calculateWeightDifference = () => {
     if (weightHistory.length < 2) return { difference: 0, percentChange: 0, trend: "stable" };
     const oldest = weightHistory[0].weight;
     const newest = weightHistory[weightHistory.length - 1].weight;
     const difference = newest - oldest;
-    // Százalékos változás számítása
+    
+    // Százalékos változás helyes számítása
+    // Ha 80-ról 100-ra megy, akkor (100-80)/80 * 100 = 25% növekedés
     const percentChange = (difference / oldest) * 100;
     
     let trend = "stable";
@@ -214,7 +218,7 @@ const ProgressPage: React.FC = () => {
     
     return { 
       difference, 
-      percentChange: percentChange,
+      percentChange,
       trend 
     };
   };
@@ -225,14 +229,22 @@ const ProgressPage: React.FC = () => {
     const startWeight = weightHistory.length > 0 ? weightHistory[0].weight : user.weight;
     const currentWeightVal = user.weight;
     const goalWeight = user.goalWeight;
+    
+    // Ha a kezdősúly és a célsúly megegyezik, 100%-ot adunk vissza
+    if (startWeight === goalWeight) return 100;
+    
+    // Súlynövelés esetén (pl. izomépítés)
     if (goalWeight > startWeight) {
       if (currentWeightVal >= goalWeight) return 100;
+      if (currentWeightVal <= startWeight) return 0;
       return Math.round(((currentWeightVal - startWeight) / (goalWeight - startWeight)) * 100);
-    } else if (goalWeight < startWeight) {
+    } 
+    // Súlycsökkentés esetén
+    else {
       if (currentWeightVal <= goalWeight) return 100;
+      if (currentWeightVal >= startWeight) return 0;
       return Math.round(((startWeight - currentWeightVal) / (startWeight - goalWeight)) * 100);
     }
-    return 100;
   };
 
   // Egyszerű BMI számítás
@@ -246,7 +258,7 @@ const ProgressPage: React.FC = () => {
   // Frissített BMI kategória számítás
   const getBMICategory = (bmi: number) => {
     if (bmi < 18.5) return { category: "Alulsúlyos", color: "#FFB74D" };
-    if (bmi < 26) return { category: "Normál", color: "#66BB6A" };
+    if (bmi < 25) return { category: "Normál", color: "#66BB6A" };
     if (bmi < 30) return { category: "Túlsúlyos", color: "#FFA726" };
     return { category: "Elhízott", color: "#EF5350" };
   };
@@ -256,10 +268,7 @@ const ProgressPage: React.FC = () => {
   const weightDiff = calculateWeightDifference();
   const goalProgress = calculateGoalProgress();
 
-  // A mai nap ISO formátumban
-  const todayIso = new Date().toISOString().split("T")[0];
-
-  // A dátum validáció: maximum mai nap lehet
+  // A max dátum a mai nap
   const maxDate = new Date().toISOString().split("T")[0];
 
   const handleLogout = () => {
@@ -309,11 +318,9 @@ const ProgressPage: React.FC = () => {
               <div className={`trend-badge ${weightDiff.trend}`}>
                 {weightDiff.difference > 0 ? "+" : ""}
                 {weightDiff.difference.toFixed(1)} kg
-                <span className="trend-percentage">
-                  ({weightDiff.percentChange.toFixed(1)}%)
-                </span>
                 <span className="trend-arrow">
-                  {weightDiff.trend === "increasing" ? "↑" : "↓"}
+                  {" "}({weightDiff.percentChange.toFixed(1)}%)
+                  {weightDiff.trend === "increasing" ? " ↑" : " ↓"}
                 </span>
               </div>
             )}
@@ -390,8 +397,8 @@ const ProgressPage: React.FC = () => {
           <div className="weight-input-group">
             <input
               type="number"
-              value={newWeight}
-              onChange={(e) => setNewWeight(parseFloat(e.target.value))}
+              value={newWeight ?? ''}
+              onChange={(e) => setNewWeight(e.target.value ? parseFloat(e.target.value) : undefined)}
               placeholder="Írd be a súlyodat (kg)"
               step="0.1"
             />
@@ -405,7 +412,7 @@ const ProgressPage: React.FC = () => {
           </div>
           {updateStatus && <p className="update-status">{updateStatus}</p>}
           <p className="info-text">
-            {weightLogDate === new Date().toISOString().split("T")[0]
+            {weightLogDate === maxDate
               ? "A mai napra rögzített súly automatikusan frissíti az aktuális profil súlyodat is."
               : "Korábbi dátumra rögzített súly csak a haladási grafikonon jelenik meg."}
           </p>

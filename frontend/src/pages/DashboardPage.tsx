@@ -43,12 +43,31 @@ const DashboardPage: React.FC = () => {
     dailyRemaining: 0,
     weeklyRemaining: 0
   });
+  const [menuOpen, setMenuOpen] = useState<boolean>(false);
+  const [windowWidth, setWindowWidth] = useState<number>(window.innerWidth);
 
   const days = ["Hétfő", "Kedd", "Szerda", "Csütörtök", "Péntek", "Szombat", "Vasárnap"];
   const dayMap: { [key: number]: string } = { 1: "Hétfő", 2: "Kedd", 3: "Szerda", 4: "Csütörtök", 5: "Péntek", 6: "Szombat", 0: "Vasárnap" };
   const todayDayName = dayMap[new Date().getDay()];
   const mealTypes = ["Reggeli", "Ebéd", "Snack", "Vacsora"];
   const userId = localStorage.getItem("userId") || "";
+
+  // Követi az ablak méretét
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+      if (window.innerWidth > 768) {
+        setMenuOpen(true);
+      } else {
+        setMenuOpen(false);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    handleResize(); // Kezdeti méret beállítása
+
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Compute recommended calories
   const computeRecommendedCalories = (): number => {
@@ -456,21 +475,53 @@ const DashboardPage: React.FC = () => {
     setQuantityModalOpen(false);
   };
 
+  // Hamburger menü kezelése
+  const toggleMenu = () => {
+    setMenuOpen(!menuOpen);
+  };
+
+  // Menü bezárása, ha a felhasználó kiválaszt egy menüpontot
+  const handleMenuItemClick = (path: string) => {
+    navigate(path);
+    if (windowWidth <= 768) {
+      setMenuOpen(false);
+    }
+  };
+
+  // Overlay kezelése
+  const handleOverlayClick = () => {
+    setMenuOpen(false);
+  };
+
   if (loading || userLoading) {
     return <div className="dashboard-container">Betöltés...</div>;
   }
 
   return (
     <div className="dashboard-container">
-      <aside className="dashboard-sidebar">
+      {/* Hamburger menü ikon */}
+      <div className={`hamburger-menu ${menuOpen ? 'open' : ''}`} onClick={toggleMenu}>
+        <div></div>
+        <div></div>
+        <div></div>
+      </div>
+
+      {/* Overlay a mobilon történő menü mögött */}
+      <div 
+        className={`sidebar-overlay ${menuOpen && windowWidth <= 768 ? 'active' : ''}`} 
+        onClick={handleOverlayClick}
+      ></div>
+
+      {/* Oldalsó menü */}
+      <aside className={`dashboard-sidebar ${menuOpen ? 'open' : 'closed'}`}>
         <div className="sidebar-header">
-          <h2 onClick={() => navigate("/")} className="logo animated-logo">TestreSzabva</h2>
+          <h2 onClick={() => handleMenuItemClick("/")} className="logo animated-logo">TestreSzabva</h2>
         </div>
         <nav className="sidebar-nav">
-          <button onClick={() => navigate("/dashboard")}>Áttekintés</button>
-          <button onClick={() => navigate("/progress")}>Haladás</button>
-          <button onClick={() => navigate("/receptek")}>Receptek</button>
-          <button onClick={() => navigate("/settings")}>Beállítások</button>
+          <button onClick={() => handleMenuItemClick("/dashboard")}>Áttekintés</button>
+          <button onClick={() => handleMenuItemClick("/progress")}>Haladás</button>
+          <button onClick={() => handleMenuItemClick("/receptek")}>Receptek</button>
+          <button onClick={() => handleMenuItemClick("/settings")}>Beállítások</button>
         </nav>
         <div className="sidebar-footer">
           <button className="logout-button" onClick={handleLogout}>Kijelentkezés</button>
