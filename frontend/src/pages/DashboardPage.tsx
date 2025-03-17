@@ -518,10 +518,10 @@ const DashboardPage: React.FC = () => {
           <h2 onClick={() => navigate("/")} className="logo animated-logo">TestreSzabva</h2>
         </div>
         <nav className="sidebar-nav">
-          <button onClick={() => handleMenuItemClick("/dashboard")}>Áttekintés</button>
-          <button onClick={() => handleMenuItemClick("/progress")}>Haladás</button>
-          <button onClick={() => handleMenuItemClick("/receptek")}>Receptek</button>
-          <button onClick={() => handleMenuItemClick("/settings")}>Beállítások</button>
+          <button onClick={() => handleMenuItemClick("/dashboard")}> 📊 Áttekintés</button>
+          <button onClick={() => handleMenuItemClick("/progress")}> 📈 Haladás</button>
+          <button onClick={() => handleMenuItemClick("/receptek")}> 🍽️ Receptek</button>
+          <button onClick={() => handleMenuItemClick("/settings")}> ⚙️ Beállítások</button>
         </nav>
         <div className="sidebar-footer">
           <button className="logout-button" onClick={handleLogout}>Kijelentkezés</button>

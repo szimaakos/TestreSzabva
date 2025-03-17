@@ -816,12 +816,10 @@ const ReceptekPage: React.FC = () => {
           </h2>
         </div>
         <nav className="sidebar-nav">
-          <button onClick={() => navigate("/dashboard")}>Áttekintés</button>
-          <button onClick={() => navigate("/progress")}>Haladás</button>
-          <button onClick={() => navigate("/receptek")} className="active">
-            Receptek
-          </button>
-          <button onClick={() => navigate("/settings")}>Beállítások</button>
+          <button onClick={() => navigate("/dashboard")}> 📊 Áttekintés</button>
+          <button onClick={() => navigate("/progress")}> 📈 Haladás</button>
+          <button onClick={() => navigate("/receptek")}> 🍽️ Receptek</button>
+          <button onClick={() => navigate("/settings")}> ⚙️ Beállítások</button>
         </nav>
         <div className="sidebar-footer">
           <button className="logout-button" onClick={() => navigate("/")}>

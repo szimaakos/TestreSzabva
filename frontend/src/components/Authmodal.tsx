@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { X } from "lucide-react";
 import "./AuthModal.css";
 
 interface AuthModalProps {
@@ -290,9 +291,9 @@ const AuthModal: React.FC<AuthModalProps> = ({
           </button>
         </div>
 
-        <span className="close-button" onClick={onClose}>
-          &times;
-        </span>
+        <button className="close-button" onClick={onClose}>
+          <X size={24} />
+        </button>
 
         <hr className="header-separator" />
 

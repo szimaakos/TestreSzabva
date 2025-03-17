@@ -97,26 +97,22 @@
     font-weight: 600;
   }
   
-  /* Bezáró gomb */
   .close-button {
     position: absolute;
-    top: 16px;
-    right: 16px;
-    width: 36px;
-    height: 36px;
-    background: #fff;
-    border: 2px solid #e30b5c;
-    color: #e30b5c;
-    border-radius: 50%;
-    font-size: 20px;
+    top: 24px;
+    right: 24px;
+    background: transparent;
+    border: none;
+    color: black; 
     cursor: pointer;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    transition: background-color 0.2s, transform 0.2s;
+    padding: 0;
+    margin: 0;
+    outline: none;
+    text-decoration: none;
   }
   
   .close-button:hover {
-    background-color: #ffd1e2;
-    transform: scale(1.05);
+    opacity: 0.8;
   }
   
   /* Modal tartalom */
