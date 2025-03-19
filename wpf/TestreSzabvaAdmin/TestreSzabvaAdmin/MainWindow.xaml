@@ -113,6 +113,9 @@
             <!-- Új étel gomb jobbra -->
             <Button Content="Új étel" Style="{StaticResource AccentButtonStyle}" 
                     DockPanel.Dock="Right" Click="NewFoodButton_Click"/>
+
+            <Button Content="CSV Import" Style="{StaticResource AccentButtonStyle}" 
+            DockPanel.Dock="Right" Click="CsvImportButton_Click" Margin="0,0,10,0"/>
         </DockPanel>
 
         <!-- DataGrid keret -->

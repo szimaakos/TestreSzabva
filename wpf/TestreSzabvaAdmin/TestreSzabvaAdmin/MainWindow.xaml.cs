@@ -43,6 +43,17 @@ namespace TestreSzabvaAdmin
             return matchesSearch && matchesCategory;
         }
 
+        private void CsvImportButton_Click(object sender, RoutedEventArgs e)
+        {
+            var importWindow = new ImportCsvWindow();
+            importWindow.Owner = this;
+            if (importWindow.ShowDialog() == true)
+            {
+                // Sikeres import után frissítjük az ételek listáját
+                _ = LoadFoods();
+            }
+        }
+
         private async System.Threading.Tasks.Task LoadFoods()
         {
             try

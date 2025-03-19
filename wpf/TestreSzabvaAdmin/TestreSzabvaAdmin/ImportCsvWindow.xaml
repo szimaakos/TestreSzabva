@@ -1,0 +1,12 @@
+﻿<Window x:Class="TestreSzabvaAdmin.ImportCsvWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="CSV Import" Height="200" Width="400">
+    <Grid Margin="10">
+        <StackPanel>
+            <Button Name="SelectCsvButton" Content="Válassz CSV fájlt" Click="SelectCsvButton_Click" Margin="0,0,0,10"/>
+            <TextBlock Name="StatusTextBlock" Text="Állapot: várakozás..." Margin="0,0,0,10"/>
+            <Button Name="ImportButton" Content="Importálás" Click="ImportButton_Click" IsEnabled="False"/>
+        </StackPanel>
+    </Grid>
+</Window>
