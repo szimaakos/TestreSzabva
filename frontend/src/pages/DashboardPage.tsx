@@ -26,22 +26,36 @@ interface CaloriesData {
   weeklyRemaining: number;
 }
 
+const CALORIES_STORAGE_KEY = "caloriesData";
+
 const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
-  const { user, loading: userLoading, caloriesConsumed, setCaloriesConsumed } = useUser();
+  const { user, loading: userLoading, caloriesConsumed, setCaloriesConsumed, refreshUserData } = useUser();
   const [weeklyMenus, setWeeklyMenus] = useState<HetiEtrend[]>([]);
   const [loading, setLoading] = useState(true);
   const [foodPopupOpen, setFoodPopupOpen] = useState<boolean>(false);
   const [selectedCell, setSelectedCell] = useState<SelectedCell | null>(null);
   const [quantityModalOpen, setQuantityModalOpen] = useState<boolean>(false);
   const [selectedQuantityCell, setSelectedQuantityCell] = useState<SelectedQuantityCell | null>(null);
-  const [caloriesData, setCaloriesData] = useState<CaloriesData>({
-    dailyRecommended: 0,
-    dailyConsumed: 0,
-    weeklyRecommended: 0,
-    weeklyConsumed: 0,
-    dailyRemaining: 0,
-    weeklyRemaining: 0
+  const [caloriesData, setCaloriesData] = useState<CaloriesData>(() => {
+    // Inicializálás localStorage-ból, ha létezik
+    const savedData = localStorage.getItem(CALORIES_STORAGE_KEY);
+    if (savedData) {
+      try {
+        return JSON.parse(savedData);
+      } catch (e) {
+        console.error("Error parsing saved calories data:", e);
+      }
+    }
+    // Default érték, ha nincs elmentett adat
+    return {
+      dailyRecommended: 0,
+      dailyConsumed: 0,
+      weeklyRecommended: 0,
+      weeklyConsumed: 0,
+      dailyRemaining: 0,
+      weeklyRemaining: 0
+    };
   });
   const [menuOpen, setMenuOpen] = useState<boolean>(false);
   const [windowWidth, setWindowWidth] = useState<number>(window.innerWidth);
@@ -69,72 +83,95 @@ const DashboardPage: React.FC = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Compute recommended calories
-  const computeRecommendedCalories = (): number => {
-    if (user && user.weight && user.height && user.age && user.gender && user.activityLevel) {
-      if (user.calorieGoal) {
-        return Math.round(user.calorieGoal);
-      }
-      let bmr = 0;
-      if (["férfi", "male"].includes(user.gender.toLowerCase())) {
-        bmr = 10 * user.weight + 6.25 * user.height - 5 * user.age + 5;
-      } else if (["nő", "female"].includes(user.gender.toLowerCase())) {
-        bmr = 10 * user.weight + 6.25 * user.height - 5 * user.age - 161;
-      }
-      let multiplier = 1.2;
-      switch (user.activityLevel.toLowerCase()) {
-        case "alacsony":
-        case "sedentary":
-          multiplier = 1.2;
-          break;
-        case "mérsékelt":
-        case "light":
-          multiplier = 1.55;
-          break;
-        case "magas":
-        case "moderate":
-          multiplier = 1.725;
-          break;
-        case "active":
-        case "veryactive":
-          multiplier = 1.9;
-          break;
-        default:
-          multiplier = 1.2;
-          break;
-      }
-      const maintenanceCalories = Math.round(bmr * multiplier);
-      if (user.goalWeight && user.goalDate && user.weight) {
-        const currentDate = new Date();
-        const targetDate = new Date(user.goalDate);
-        const daysRemaining = Math.ceil((targetDate.getTime() - currentDate.getTime()) / (1000 * 3600 * 24));
-        if (daysRemaining > 0) {
-          const weightDifference = user.weight - user.goalWeight;
-          const totalCalorieDifference = weightDifference * 7700;
-          const dailyCalorieAdjustment = totalCalorieDifference / daysRemaining;
-          let recommended = Math.round(maintenanceCalories - dailyCalorieAdjustment);
-          const minCalories = user.gender.toLowerCase().includes("férfi") ? 1500 : 1200;
-          const maxCalories = maintenanceCalories + 1000;
-          if (recommended < minCalories) recommended = minCalories;
-          if (recommended > maxCalories) recommended = maxCalories;
-          return recommended;
-        }
-      }
-      return maintenanceCalories;
+  // Compute recommended calories without default values
+  const computeRecommendedCalories = (): number | null => {
+    if (!user || !user.weight || !user.height || !user.age || !user.gender || !user.activityLevel) {
+      return null; // Nincs elég adat a számításhoz
     }
-    return 2000; // Default value if calculations are not possible
+    
+    if (user.calorieGoal) {
+      return Math.round(user.calorieGoal);
+    }
+    
+    let bmr = 0;
+    if (["férfi", "male"].includes(user.gender.toLowerCase())) {
+      bmr = 10 * user.weight + 6.25 * user.height - 5 * user.age + 5;
+    } else if (["nő", "female"].includes(user.gender.toLowerCase())) {
+      bmr = 10 * user.weight + 6.25 * user.height - 5 * user.age - 161;
+    } else {
+      return null; // Ismeretlen nem
+    }
+    
+    let multiplier: number;
+    switch (user.activityLevel.toLowerCase()) {
+      case "alacsony":
+      case "sedentary":
+        multiplier = 1.2;
+        break;
+      case "mérsékelt":
+      case "light":
+        multiplier = 1.55;
+        break;
+      case "magas":
+      case "moderate":
+        multiplier = 1.725;
+        break;
+      case "active":
+      case "veryactive":
+        multiplier = 1.9;
+        break;
+      default:
+        return null; // Ismeretlen aktivitási szint
+    }
+    
+    const maintenanceCalories = Math.round(bmr * multiplier);
+    
+    if (user.goalWeight && user.goalDate) {
+      const currentDate = new Date();
+      const targetDate = new Date(user.goalDate);
+      const daysRemaining = Math.ceil((targetDate.getTime() - currentDate.getTime()) / (1000 * 3600 * 24));
+      
+      if (daysRemaining > 0) {
+        const weightDifference = user.weight - user.goalWeight;
+        const totalCalorieDifference = weightDifference * 7700;
+        const dailyCalorieAdjustment = totalCalorieDifference / daysRemaining;
+        let recommended = Math.round(maintenanceCalories - dailyCalorieAdjustment);
+        
+        const minCalories = user.gender.toLowerCase().includes("férfi") ? 1500 : 1200;
+        const maxCalories = maintenanceCalories + 1000;
+        
+        if (recommended < minCalories) recommended = minCalories;
+        if (recommended > maxCalories) recommended = maxCalories;
+        
+        return recommended;
+      }
+    }
+    
+    return maintenanceCalories;
   };
 
-  // Calculate calories data
+  // Calculate calories data with null handling
   const calculateCaloriesData = (
     weeklyData: HetiEtrend[],
     todayDayName: string
   ): CaloriesData => {
-    // Get recommended calories
     const recommended = computeRecommendedCalories();
+    
+    // Ha nincs elegendő adat, visszaadjuk a korábban mentett értékeket vagy alapértelmezetteket
+    if (recommended === null) {
+      const savedData = localStorage.getItem(CALORIES_STORAGE_KEY);
+      if (savedData) {
+        try {
+          return JSON.parse(savedData);
+        } catch (e) {
+          console.error("Error parsing saved calories data:", e);
+        }
+      }
+      return caloriesData; // Használjuk a jelenlegi állapotot
+    }
+    
     const weeklyRecommended = recommended * 7;
     
-    // Default values if data is empty
     if (!weeklyData || weeklyData.length === 0) {
       return {
         dailyRecommended: recommended,
@@ -146,24 +183,20 @@ const DashboardPage: React.FC = () => {
       };
     }
     
-    // Calculate total and today's calories
     let totalCalories = 0;
     let todayCalories = 0;
     
     weeklyData.forEach((slot: HetiEtrend) => {
-      // Make sure mealFoods exists and is an array
       const mealFoods = slot.mealFoods || [];
       const slotCalories = mealFoods.reduce((sum, mf) => sum + (mf.totalCalories || 0), 0);
       
       totalCalories += slotCalories;
       
-      // Calculate today's consumed calories
       if (slot.dayOfWeek.toLowerCase() === todayDayName.toLowerCase()) {
         todayCalories += slotCalories;
       }
     });
     
-    // Calculate remaining calories
     const dailyRemaining = Math.max(0, recommended - todayCalories);
     const weeklyRemaining = Math.max(0, weeklyRecommended - totalCalories);
     
@@ -177,7 +210,13 @@ const DashboardPage: React.FC = () => {
     };
   };
 
-  // Fetch data on component mount
+  // Mentsük el a kalória adatokat a localStorage-ba
+  useEffect(() => {
+    if (caloriesData.dailyRecommended > 0) {
+      localStorage.setItem(CALORIES_STORAGE_KEY, JSON.stringify(caloriesData));
+    }
+  }, [caloriesData]);
+
   useEffect(() => {
     const fetchData = async () => {
       const token = localStorage.getItem("authToken");
@@ -189,6 +228,10 @@ const DashboardPage: React.FC = () => {
       setLoading(true);
       
       try {
+        // Várjuk meg a felhasználói adatok frissítését
+        await refreshUserData();
+        
+        // Majd kérjük le a heti étrendet
         const weeklyResponse = await fetch(`http://localhost:5162/api/HetiEtrend/Felhasznalo/${userId}`, {
           method: "GET",
           headers: { "Content-Type": "application/json" },
@@ -202,38 +245,49 @@ const DashboardPage: React.FC = () => {
           // Set weekly menus
           setWeeklyMenus(weeklyData);
           
-          // Calculate calories data
+          // Calculate calories data immediately after setting weekly menus
           const caloriesInfo = calculateCaloriesData(weeklyData, todayDayName);
-          
-          // Update state with calculated data
           setCaloriesData(caloriesInfo);
           setCaloriesConsumed(caloriesInfo.weeklyConsumed);
-          
-          console.log("Calories data updated:", caloriesInfo); // Debug log
         } else {
           console.error("Error loading weekly menu data:", weeklyResponse.status);
-          // Set default values on error
-          const defaultCaloriesInfo = calculateCaloriesData([], todayDayName);
-          setCaloriesData(defaultCaloriesInfo);
-          setCaloriesConsumed(0);
+          // Use saved values on error if they exist
+          const savedData = localStorage.getItem(CALORIES_STORAGE_KEY);
+          if (savedData) {
+            try {
+              const parsedData = JSON.parse(savedData);
+              setCaloriesData(parsedData);
+              setCaloriesConsumed(parsedData.weeklyConsumed);
+            } catch (e) {
+              console.error("Error parsing saved calories data:", e);
+            }
+          }
         }
       } catch (err) {
         console.error("Error fetching dashboard data:", err);
-        // Set default values on error
-        const defaultCaloriesInfo = calculateCaloriesData([], todayDayName);
-        setCaloriesData(defaultCaloriesInfo);
-        setCaloriesConsumed(0);
+        // Use saved values on error if they exist
+        const savedData = localStorage.getItem(CALORIES_STORAGE_KEY);
+        if (savedData) {
+          try {
+            const parsedData = JSON.parse(savedData);
+            setCaloriesData(parsedData);
+            setCaloriesConsumed(parsedData.weeklyConsumed);
+          } catch (e) {
+            console.error("Error parsing saved calories data:", e);
+          }
+        }
       } finally {
         setLoading(false);
       }
     };
     
     fetchData();
-  }, [navigate, userId, todayDayName, setCaloriesConsumed, user]);
-
+  }, [navigate, userId, todayDayName, setCaloriesConsumed, refreshUserData]);
+  
   const handleLogout = () => {
     localStorage.removeItem("authToken");
     localStorage.removeItem("userId");
+    localStorage.removeItem(CALORIES_STORAGE_KEY); // Tisztítsuk a kalória adatokat kijelentkezéskor
     navigate("/");
   };
 
@@ -249,7 +303,6 @@ const DashboardPage: React.FC = () => {
     const newQuantity = 1;
     const additionalCalories = food.calories * newQuantity;
     
-    // Find the appropriate slot
     const existingSlot = weeklyMenus.find(
       (slot) =>
         slot.dayOfWeek.toLowerCase() === selectedCell.day.toLowerCase() &&
@@ -257,14 +310,12 @@ const DashboardPage: React.FC = () => {
     );
     
     if (existingSlot) {
-      // Check if this food already exists (by foodId)
       const existingFoodIndex = existingSlot.mealFoods.findIndex(
         (mf) => mf.foodId === food.foodId
       );
       
       let updatedMealFoods;
       if (existingFoodIndex >= 0) {
-        // If exists, increase quantity
         updatedMealFoods = existingSlot.mealFoods.map((mf, idx) => {
           if (idx === existingFoodIndex) {
             const newQty = mf.quantity + 1;
@@ -278,7 +329,6 @@ const DashboardPage: React.FC = () => {
           return mf;
         });
       } else {
-        // Otherwise add as new
         const newMealFood = {
           foodId: food.foodId,
           quantity: newQuantity,
@@ -310,9 +360,7 @@ const DashboardPage: React.FC = () => {
           slot.planId === existingSlot.planId ? { ...slot, mealFoods: updatedMealFoods } : slot
         );
         
-        // Recalculate calories data with updated menus
         const newCaloriesInfo = calculateCaloriesData(updatedMenus, todayDayName);
-        
         setWeeklyMenus(updatedMenus);
         setCaloriesData(newCaloriesInfo);
         setCaloriesConsumed(newCaloriesInfo.weeklyConsumed);
@@ -321,7 +369,6 @@ const DashboardPage: React.FC = () => {
         console.error("Error updating slot:", response.status, errorText);
       }
     } else {
-      // If no slot exists, create new one
       const newMealFood = {
         foodId: food.foodId,
         quantity: newQuantity,
@@ -347,10 +394,7 @@ const DashboardPage: React.FC = () => {
       if (response.ok) {
         const createdSlot = await response.json();
         const updatedMenus = [...weeklyMenus, createdSlot];
-        
-        // Recalculate calories with new slot
         const newCaloriesInfo = calculateCaloriesData(updatedMenus, todayDayName);
-        
         setWeeklyMenus(updatedMenus);
         setCaloriesData(newCaloriesInfo);
         setCaloriesConsumed(newCaloriesInfo.weeklyConsumed);
@@ -395,9 +439,7 @@ const DashboardPage: React.FC = () => {
         m.planId === slot.planId ? { ...m, mealFoods: updatedMealFoods } : m
       );
       
-      // Recalculate calories with updated menus
       const newCaloriesInfo = calculateCaloriesData(updatedMenus, todayDayName);
-      
       setWeeklyMenus(updatedMenus);
       setCaloriesData(newCaloriesInfo);
       setCaloriesConsumed(newCaloriesInfo.weeklyConsumed);
@@ -464,7 +506,6 @@ const DashboardPage: React.FC = () => {
       s.planId === slot.planId ? { ...s, mealFoods: updatedMealFoods } : s
     );
     
-    // Recalculate calories with updated quantity
     const newCaloriesInfo = calculateCaloriesData(updatedMenus, todayDayName);
     
     setWeeklyMenus(updatedMenus);
@@ -475,12 +516,10 @@ const DashboardPage: React.FC = () => {
     setQuantityModalOpen(false);
   };
 
-  // Hamburger menü kezelése
   const toggleMenu = () => {
     setMenuOpen(!menuOpen);
   };
 
-  // Menü bezárása, ha a felhasználó kiválaszt egy menüpontot
   const handleMenuItemClick = (path: string) => {
     navigate(path);
     if (windowWidth <= 768) {
@@ -488,7 +527,6 @@ const DashboardPage: React.FC = () => {
     }
   };
 
-  // Overlay kezelése
   const handleOverlayClick = () => {
     setMenuOpen(false);
   };
@@ -499,20 +537,15 @@ const DashboardPage: React.FC = () => {
 
   return (
     <div className="dashboard-container">
-      {/* Hamburger menü ikon */}
       <div className={`hamburger-menu ${menuOpen ? 'open' : ''}`} onClick={toggleMenu}>
         <div></div>
         <div></div>
         <div></div>
       </div>
-
-      {/* Overlay a mobilon történő menü mögött */}
       <div 
         className={`sidebar-overlay ${menuOpen && windowWidth <= 768 ? 'active' : ''}`} 
         onClick={handleOverlayClick}
       ></div>
-
-      {/* Oldalsó menü */}
       <aside className={`dashboard-sidebar ${menuOpen ? 'open' : 'closed'}`}>
         <div className="sidebar-header">
           <h2 onClick={() => navigate("/")} className="logo animated-logo">TestreSzabva</h2>
@@ -527,13 +560,11 @@ const DashboardPage: React.FC = () => {
           <button className="logout-button" onClick={handleLogout}>Kijelentkezés</button>
         </div>
       </aside>
-
       <div className="dashboard-content">
         <header className="content-header">
-          <h1>Üdv, {user?.userName}!</h1>
+          <h1>Üdv, {user?.userName || 'Felhasználó'}!</h1>
           <p>Itt találod a napi és heti kalória céljaidat és a heti menüdet.</p>
         </header>
-
         <div className="top-info-section">
           <div className="remaining-calories-box">
             <RemainingCaloriesBox 
@@ -545,7 +576,6 @@ const DashboardPage: React.FC = () => {
             />
           </div>
         </div>
-
         <section className="weekly-menu-section">
           <h2>Heti Menü</h2>
           <div className="weekly-menu-wrapper">
@@ -561,7 +591,6 @@ const DashboardPage: React.FC = () => {
           </div>
         </section>
       </div>
-
       {foodPopupOpen && selectedCell && (
           <FoodSelectorPopup
             mealType={selectedCell.mealType}
@@ -569,7 +598,6 @@ const DashboardPage: React.FC = () => {
             onClose={() => setFoodPopupOpen(false)}
           />
         )}
-
       {quantityModalOpen && selectedQuantityCell && (
         <QuantitySelectorModal
           initialQuantity={
