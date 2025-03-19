@@ -34,27 +34,18 @@ const useFoods = (): Etel[] => {
   const [foods, setFoods] = useState<Etel[]>([]);
 
   useEffect(() => {
-    // Try to get foods from localStorage first
-    const cachedFoodsJson = localStorage.getItem('cachedFoods');
-    
-    if (cachedFoodsJson) {
-      setFoods(JSON.parse(cachedFoodsJson));
-    } else {
-      // If not in localStorage, fetch from API
-      fetch("http://localhost:5162/api/Etel")
-        .then(response => response.json())
-        .then(data => {
-          const foodList = data.$values || data;
-          // Store in localStorage for future use
-          localStorage.setItem('cachedFoods', JSON.stringify(foodList));
-          setFoods(foodList);
-        })
-        .catch(err => console.error("Hiba az ételek lekérésekor:", err));
-    }
+    fetch("http://localhost:5162/api/Etel")
+      .then(response => response.json())
+      .then(data => {
+        const foodList = data.$values || data;
+        setFoods(foodList);
+      })
+      .catch(err => console.error("Hiba az ételek lekérésekor:", err));
   }, []);
 
   return foods;
 };
+
 
 const FoodSelectorPopup: React.FC<FoodSelectorPopupProps> = ({
   onFoodSelect,
