@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import AuthModal from "../components/Authmodal";
 
@@ -23,6 +23,44 @@ const Home: React.FC<HomeProps> = ({ isLoggedIn, setIsLoggedIn }) => {
 
   // Mobilmenü
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Scroll animáció kezelése
+  useEffect(() => {
+    const handleScrollAnimation = () => {
+      const elements = document.querySelectorAll('.scroll-animation');
+      
+      const checkVisibility = () => {
+        elements.forEach((element) => {
+          // A viewport kb. 80%-ánál már elkezdi az animációt
+          const elementTop = element.getBoundingClientRect().top;
+          const elementVisible = window.innerHeight * 0.8;
+          
+          if (elementTop < elementVisible) {
+            element.classList.add('visible');
+          }
+        });
+      };
+    
+      // Indulásnál és görgetésnél is ellenőrizzük
+      window.addEventListener('scroll', checkVisibility);
+      
+      // Kezdeti ellenőrzés, hogy a már látható elemek megjelenjenek
+      checkVisibility();
+      
+      // Tisztítás
+      return () => {
+        window.removeEventListener('scroll', checkVisibility);
+      };
+    };
+
+    // Aktiváljuk a scroll animációt
+    const cleanupScrollAnimation = handleScrollAnimation();
+    
+    return () => {
+      // Amikor a komponens unmountol, tisztítjuk a scroll figyelőt
+      if (cleanupScrollAnimation) cleanupScrollAnimation();
+    };
+  }, []);
 
   // Ha nincs bejelentkezve, modált nyitunk
   const checkLoginOrRegister = (callback: () => void) => {
@@ -165,10 +203,10 @@ const Home: React.FC<HomeProps> = ({ isLoggedIn, setIsLoggedIn }) => {
       </section>
 
       {/* ===== Fő funkciók (3 kép) ===== */}
-      <section className="features-section" id="receptek">
+      <section className="features-section scroll-animation" id="receptek">
         <h2>A TestreSzabva fő funkciói</h2>
         <div className="features-grid">
-          <div className="feature-card">
+          <div className="feature-card scroll-animation scroll-animation-delay-1">
             <div className="feature-image">
               <img
                 src={weeklyschedule}
@@ -182,7 +220,7 @@ const Home: React.FC<HomeProps> = ({ isLoggedIn, setIsLoggedIn }) => {
               menüt állítunk össze.
             </p>
           </div>
-          <div className="feature-card">
+          <div className="feature-card scroll-animation scroll-animation-delay-2">
             <div className="feature-image">
               <img
                 src={ingredientbook}
@@ -196,7 +234,7 @@ const Home: React.FC<HomeProps> = ({ isLoggedIn, setIsLoggedIn }) => {
               választék határtalan!
             </p>
           </div>
-          <div className="feature-card">
+          <div className="feature-card scroll-animation scroll-animation-delay-3">
             <div className="feature-image">
               <img
                 src={communityhealth}
@@ -213,27 +251,27 @@ const Home: React.FC<HomeProps> = ({ isLoggedIn, setIsLoggedIn }) => {
         </div>
       </section>
 
-      <section className="testimonials-section">
+      <section className="testimonials-section scroll-animation">
         <h2>Vélemények</h2>
         <div className="testimonials-grid">
-          <div className="testimonial-card">
+          <div className="testimonial-card scroll-animation scroll-animation-delay-1">
             <p className="testimonial-text">
               „A TestreSzabva heti menüjével végre sikerült úgy diétáznom, hogy
-              közben finomakat eszem és nem éhezem!”
+              közben finomakat eszem és nem éhezem!"
             </p>
             <p className="testimonial-author">– Mariann, 29 éves</p>
           </div>
-          <div className="testimonial-card">
+          <div className="testimonial-card scroll-animation scroll-animation-delay-2">
             <p className="testimonial-text">
               „Nekem a receptek adtak hatalmas segítséget. Egyszerűen
-              elkészíthető, egészséges ételek – imádom!”
+              elkészíthető, egészséges ételek – imádom!"
             </p>
             <p className="testimonial-author">– Balázs, 34 éves</p>
           </div>
-          <div className="testimonial-card">
+          <div className="testimonial-card scroll-animation scroll-animation-delay-3">
             <p className="testimonial-text">
               „Közösség és motiváció – ezekre volt a legnagyobb szükségem, és a
-              TestreSzabva mindenben támogatott.”
+              TestreSzabva mindenben támogatott."
             </p>
             <p className="testimonial-author">– Anikó, 42 éves</p>
           </div>
@@ -241,14 +279,14 @@ const Home: React.FC<HomeProps> = ({ isLoggedIn, setIsLoggedIn }) => {
       </section>
 
       {/* ======== CTA, csatlakozz most! (új) ======== */}
-      <section className="cta-join-section" id="kapcsolat">
+      <section className="cta-join-section scroll-animation" id="kapcsolat">
         <h2>Csatlakozz a TestreSzabvához még ma!</h2>
         <p>
           Lépj kapcsolatba velünk, vagy regisztrálj és alakítsd ki a saját
           egészséges életmódodat. Nem vagy egyedül: itt a támogatás minden
           lépésnél!
         </p>
-        <button className="cta-button" onClick={openRegister}>
+        <button className="cta-button scroll-animation">
           Ingyenes regisztráció
         </button>
       </section>
