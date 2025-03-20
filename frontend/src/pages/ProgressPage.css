@@ -355,6 +355,10 @@ body, html {
   gap: 15px;
   align-items: center;
   flex-wrap: wrap;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
 }
 
 .weight-input-group input {

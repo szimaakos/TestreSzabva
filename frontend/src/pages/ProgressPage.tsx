@@ -23,6 +23,16 @@ const ProgressPage: React.FC = () => {
     new Date().toISOString().split("T")[0]
   );
 
+  // Minimum dátum kiszámítása (2 héttel ezelőtt)
+  const getTwoWeeksAgoDate = (): string => {
+    const twoWeeksAgo = new Date();
+    twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
+    return twoWeeksAgo.toISOString().split("T")[0];
+  };
+
+  const minDate = getTwoWeeksAgoDate();
+  const maxDate = new Date().toISOString().split("T")[0];
+
   // Reszponzivitás: Sidebar állapotának és az ablakméret követése
   const [menuOpen, setMenuOpen] = useState<boolean>(window.innerWidth > 768);
   const [windowWidth, setWindowWidth] = useState<number>(window.innerWidth);
@@ -41,6 +51,14 @@ const ProgressPage: React.FC = () => {
     handleResize(); // Kezdeti állapot beállítása
 
     return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  // Dátum validálása az inicializáláskor
+  useEffect(() => {
+    // Ha az aktuális dátum a megengedett intervallumon kívül esik, állítsuk a mai napra
+    if (weightLogDate < minDate || weightLogDate > maxDate) {
+      setWeightLogDate(maxDate);
+    }
   }, []);
 
   const toggleMenu = () => {
@@ -88,16 +106,54 @@ const ProgressPage: React.FC = () => {
     }
   }, [user, newWeight]);
 
+  // Súlyadat validálása
+  const validateWeight = (weight: number): string => {
+    if (weight < 30) {
+      return "A súly nem lehet kisebb 30 kg-nál!";
+    }
+    if (weight > 200) {
+      return "A súly nem lehet nagyobb 200 kg-nál!";
+    }
+    return "";
+  };
+
+  // Dátum validálása
+  const validateDate = (date: string): string => {
+    if (date < minDate) {
+      return "Nem rögzíthetsz adatot 2 hétnél régebbi időpontra!";
+    }
+    if (date > maxDate) {
+      return "Nem rögzíthetsz adatot jövőbeli időpontra!";
+    }
+    return "";
+  };
+
   // Súlyadat frissítése
   const handleWeightUpdate = async () => {
     if (!user || newWeight === undefined) return;
-    setUpdateStatus("Feldolgozás...");
+    
     try {
       const weightValue = parseFloat(newWeight.toString());
       if (isNaN(weightValue)) {
         setUpdateStatus("Érvénytelen súlyérték!");
         return;
       }
+      
+      // Súly validálása
+      const validationError = validateWeight(weightValue);
+      if (validationError) {
+        setUpdateStatus(validationError);
+        return;
+      }
+      
+      // Dátum validálása
+      const dateValidationError = validateDate(weightLogDate);
+      if (dateValidationError) {
+        setUpdateStatus(dateValidationError);
+        return;
+      }
+      
+      setUpdateStatus("Feldolgozás...");
       const dateString = weightLogDate + "T00:00:00Z";
       const newRecord: ProgressRecord = {
         date: dateString,
@@ -130,6 +186,19 @@ const ProgressPage: React.FC = () => {
     } catch (error) {
       console.error("Hiba a súly frissítésekor:", error);
       setUpdateStatus("Hiba történt a frissítés során!");
+      setTimeout(() => setUpdateStatus(""), 3000);
+    }
+  };
+
+  // Dátumkiválasztás eseménykezelő
+  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedDate = e.target.value;
+    // Ellenőrizzük, hogy a dátum a megengedett intervallumon belül van-e
+    if (selectedDate >= minDate && selectedDate <= maxDate) {
+      setWeightLogDate(selectedDate);
+    } else {
+      // Ha a dátum érvénytelen, állítsuk vissza az előző értékre
+      setUpdateStatus(validateDate(selectedDate));
       setTimeout(() => setUpdateStatus(""), 3000);
     }
   };
@@ -289,8 +358,6 @@ const ProgressPage: React.FC = () => {
   const weightDiff = calculateWeightDifference();
   const goalProgress = calculateGoalProgress();
 
-  const maxDate = new Date().toISOString().split("T")[0];
-
   const handleLogout = () => {
     localStorage.removeItem("authToken");
     localStorage.removeItem("userId");
@@ -439,11 +506,14 @@ const ProgressPage: React.FC = () => {
               }
               placeholder="Írd be a súlyodat (kg)"
               step="0.1"
+              min="30"
+              max="200"
             />
             <input
               type="date"
               value={weightLogDate}
-              onChange={(e) => setWeightLogDate(e.target.value)}
+              onChange={handleDateChange}
+              min={minDate}
               max={maxDate}
             />
             <button onClick={handleWeightUpdate}>Rögzítés</button>
@@ -453,6 +523,9 @@ const ProgressPage: React.FC = () => {
             {weightLogDate === maxDate
               ? "A mai napra rögzített súly automatikusan frissíti az aktuális profil súlyodat is."
               : "Korábbi dátumra rögzített súly csak a haladási grafikonon jelenik meg."}
+          </p>
+          <p className="info-text warning">
+            Megjegyzés: Csak az elmúlt két hét adatai rögzíthetők.
           </p>
         </section>
       </div>

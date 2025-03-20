@@ -9,6 +9,9 @@ interface NumberStep {
   placeholder?: string;
   value: number | undefined;
   setValue: React.Dispatch<React.SetStateAction<number | undefined>>;
+  min?: number;
+  max?: number;
+  errorMessage?: string;
 }
 
 interface SelectStep {
@@ -18,6 +21,7 @@ interface SelectStep {
   options: { value: string; label: string }[];
   value: string;
   setValue: React.Dispatch<React.SetStateAction<string>>;
+  errorMessage?: string;
 }
 
 interface DateStep {
@@ -27,6 +31,9 @@ interface DateStep {
   placeholder?: string;
   value: string;
   setValue: React.Dispatch<React.SetStateAction<string>>;
+  min?: string;
+  max?: string;
+  errorMessage?: string;
 }
 
 type Step = NumberStep | SelectStep | DateStep;
@@ -45,7 +52,28 @@ const OnBoardingPage: React.FC = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [errorMsg, setErrorMsg] = useState("");
 
-  // Új: Betöltjük a felhasználói adatokat, ha elérhetők
+  // Minimális és maximális értékek
+  const MIN_WEIGHT = 30;
+  const MAX_WEIGHT = 300;
+  const MIN_HEIGHT = 100;
+  const MAX_HEIGHT = 250;
+  const MIN_AGE = 13;
+  const MAX_AGE = 110;
+  const MIN_GOAL_WEIGHT = 30;
+  const MAX_GOAL_WEIGHT = 300;
+
+  // Mai dátum és minimális dátum beállítása (legfeljebb 2 év a múltban)
+  const today = new Date();
+  const minDate = new Date();
+  minDate.setFullYear(today.getFullYear() - 2);
+  const minDateStr = minDate.toISOString().split('T')[0];
+  
+  // Maximális céldátum (maximum 5 év a jövőben)
+  const maxDate = new Date();
+  maxDate.setFullYear(today.getFullYear() + 5);
+  const maxDateStr = maxDate.toISOString().split('T')[0];
+
+  // Betöltjük a felhasználói adatokat, ha elérhetők
   useEffect(() => {
     const token = localStorage.getItem("authToken");
     const userId = localStorage.getItem("userId");
@@ -89,6 +117,9 @@ const OnBoardingPage: React.FC = () => {
       placeholder: "Pl. 70",
       value: weight,
       setValue: setWeight,
+      min: MIN_WEIGHT,
+      max: MAX_WEIGHT,
+      errorMessage: `A súlynak ${MIN_WEIGHT} és ${MAX_WEIGHT} kg között kell lennie.`,
     },
     {
       field: "height",
@@ -97,6 +128,9 @@ const OnBoardingPage: React.FC = () => {
       placeholder: "Pl. 170",
       value: height,
       setValue: setHeight,
+      min: MIN_HEIGHT,
+      max: MAX_HEIGHT,
+      errorMessage: `A magasságnak ${MIN_HEIGHT} és ${MAX_HEIGHT} cm között kell lennie.`,
     },
     {
       field: "age",
@@ -105,6 +139,9 @@ const OnBoardingPage: React.FC = () => {
       placeholder: "Pl. 30",
       value: age,
       setValue: setAge,
+      min: MIN_AGE,
+      max: MAX_AGE,
+      errorMessage: `Az életkornak ${MIN_AGE} és ${MAX_AGE} év között kell lennie.`,
     },
     {
       field: "gender",
@@ -117,6 +154,7 @@ const OnBoardingPage: React.FC = () => {
       ],
       value: gender,
       setValue: setGender,
+      errorMessage: "Kérlek, válassz nemet!",
     },
     {
       field: "activityLevel",
@@ -132,6 +170,7 @@ const OnBoardingPage: React.FC = () => {
       ],
       value: activityLevel,
       setValue: setActivityLevel,
+      errorMessage: "Kérlek, válassz aktivitási szintet!",
     },
     {
       field: "goalWeight",
@@ -140,6 +179,9 @@ const OnBoardingPage: React.FC = () => {
       placeholder: "Pl. 65",
       value: goalWeight,
       setValue: setGoalWeight,
+      min: MIN_GOAL_WEIGHT,
+      max: MAX_GOAL_WEIGHT,
+      errorMessage: `A cél testsúlynak ${MIN_GOAL_WEIGHT} és ${MAX_GOAL_WEIGHT} kg között kell lennie.`,
     },
     {
       field: "goalDate",
@@ -148,29 +190,120 @@ const OnBoardingPage: React.FC = () => {
       placeholder: "Válassz egy dátumot",
       value: goalDate,
       setValue: setGoalDate,
+      min: today.toISOString().split('T')[0], // Mai naptól kezdve a jövőben
+      max: maxDateStr,
+      errorMessage: `A céldátumnak a mai és ${maxDate.getFullYear()}.${maxDate.getMonth() + 1}.${maxDate.getDate()} között kell lennie.`,
     },
   ];
 
   const totalSteps = steps.length;
 
-  const handleNext = () => {
+  // Validálja az adott lépésben lévő adatot
+  const validateCurrentStep = (): boolean => {
     const currentData = steps[currentStep];
     if (currentData.type === "number") {
       if (currentData.value === undefined || currentData.value === 0) {
         setErrorMsg("Kérlek, töltsd ki a mezőt!");
-        return;
+        return false;
+      }
+      
+      // Szám értékhatárok ellenőrzése
+      if (currentData.min !== undefined && currentData.value < currentData.min) {
+        setErrorMsg(currentData.errorMessage || `Az érték nem lehet kisebb, mint ${currentData.min}!`);
+        return false;
+      }
+      
+      if (currentData.max !== undefined && currentData.value > currentData.max) {
+        setErrorMsg(currentData.errorMessage || `Az érték nem lehet nagyobb, mint ${currentData.max}!`);
+        return false;
       }
     } else if (currentData.type === "select") {
       if (currentData.value === "") {
-        setErrorMsg("Kérlek, válassz egy értéket!");
-        return;
+        setErrorMsg(currentData.errorMessage || "Kérlek, válassz egy értéket!");
+        return false;
       }
     } else if (currentData.type === "date") {
       if (currentData.value === "") {
-        setErrorMsg("Kérlek, válassz egy dátumot!");
-        return;
+        setErrorMsg(currentData.errorMessage || "Kérlek, válassz egy dátumot!");
+        return false;
+      }
+
+      const selectedDate = new Date(currentData.value);
+      
+      // Dátum értékhatárok ellenőrzése
+      if (currentData.field === "goalDate") {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        if (selectedDate < today) {
+          setErrorMsg("A céldátum nem lehet a múltban!");
+          return false;
+        }
+        
+        if (currentData.max) {
+          const maxDate = new Date(currentData.max);
+          if (selectedDate > maxDate) {
+            setErrorMsg(currentData.errorMessage || `A dátum nem lehet később, mint ${currentData.max}!`);
+            return false;
+          }
+        }
       }
     }
+
+    // Speciális ellenőrzések
+    if (currentData.field === "goalWeight" && weight !== undefined && goalWeight !== undefined) {
+      const weightDiff = Math.abs(goalWeight - weight);
+      if (weightDiff > weight * 0.5) {
+        setErrorMsg(`A célsúly nem térhet el több mint 50%-kal a jelenlegi súlytól (${weight} kg).`);
+        return false;
+      }
+    }
+
+    return true;
+  };
+
+  const validateAllSteps = (): boolean => {
+    // Ellenőrizzük az összes mezőt
+    if (!weight || !height || !age || !gender || !activityLevel || !goalWeight || goalDate === "") {
+      setErrorMsg("Kérlek, tölts ki minden mezőt!");
+      return false;
+    }
+
+    // Ellenőrizzük a BMI-t (túl alacsony vagy magas lehet irreális)
+    if (weight && height) {
+      const heightInMeters = height / 100;
+      const bmi = weight / (heightInMeters * heightInMeters);
+      if (bmi < 13) {
+        setErrorMsg("A megadott súly és magasság kombinációja irreálisan alacsony BMI-t eredményez!");
+        return false;
+      }
+      if (bmi > 60) {
+        setErrorMsg("A megadott súly és magasság kombinációja irreálisan magas BMI-t eredményez!");
+        return false;
+      }
+    }
+
+    // Ellenőrizzük a céldátumot
+    const goalDateObj = new Date(goalDate);
+    const today = new Date();
+    
+    // Minimális célidő ellenőrzése (legalább 1 hónap)
+    const minGoalDate = new Date(today);
+    minGoalDate.setMonth(today.getMonth() + 1);
+    
+    if (goalDateObj < minGoalDate && Math.abs(goalWeight! - weight!) > 5) {
+      setErrorMsg("A céldátumnak legalább egy hónappal a jövőben kell lennie jelentős súlyváltozás esetén!");
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleNext = () => {
+    if (!validateCurrentStep()) {
+      return;
+    }
+    
     setErrorMsg("");
     if (currentStep < totalSteps - 1) {
       setCurrentStep(currentStep + 1);
@@ -187,10 +320,10 @@ const OnBoardingPage: React.FC = () => {
   };
 
   const handleSubmit = async () => {
-    if (!weight || !height || !age || !gender || !activityLevel || !goalWeight || goalDate === "") {
-      setErrorMsg("Kérlek, tölts ki minden mezőt!");
+    if (!validateAllSteps()) {
       return;
     }
+    
     setErrorMsg("");
 
     const token = localStorage.getItem("authToken");
@@ -240,12 +373,19 @@ const OnBoardingPage: React.FC = () => {
             id={step.field}
             placeholder={step.placeholder}
             value={step.value ?? ""}
+            min={step.min}
+            max={step.max}
             onChange={(e) =>
               (step.setValue as React.Dispatch<React.SetStateAction<number | undefined>>)(
-                Number(e.target.value)
+                e.target.value === "" ? undefined : Number(e.target.value)
               )
             }
           />
+          <small className="field-hint">
+            {step.min !== undefined && step.max !== undefined
+              ? `Érvényes értékek: ${step.min} - ${step.max}`
+              : ""}
+          </small>
         </div>
       );
     } else if (step.type === "select") {
@@ -276,10 +416,15 @@ const OnBoardingPage: React.FC = () => {
             id={step.field}
             placeholder={step.placeholder}
             value={step.value}
+            min={step.min}
+            max={step.max}
             onChange={(e) =>
               (step.setValue as React.Dispatch<React.SetStateAction<string>>)(e.target.value)
             }
           />
+          <small className="field-hint">
+            {step.field === "goalDate" ? "Válassz egy jövőbeli dátumot (max. 5 éven belül)" : ""}
+          </small>
         </div>
       );
     }
@@ -310,7 +455,6 @@ const OnBoardingPage: React.FC = () => {
         <div className="button-group">
           <button onClick={() => navigate("/")} className="onboarding-back">Vissza a kezdőlapra</button>
           {currentStep > 0 && (
-            
             <button className="onboarding-submit" onClick={handleBack}>
               Vissza
             </button>
