@@ -136,9 +136,9 @@ const Home: React.FC<HomeProps> = ({ isLoggedIn, setIsLoggedIn }) => {
       <section className="hero-section">
         <div className="hero-content">
           <div className="hero-text">
-            <h1>Formáld át az életed a TestreSzabva programmal!</h1>
+            <h1>Érd el céljaid TestreSzabva!</h1>
              <p>
-              A személyre szabott heti étrendjeink és receptjeink segítségével
+              A személyre szabott étkezési célok és receptjeink segítségével
               könnyedén követheted az egészséges életmódot, és támogatjuk a
               céljaid elérését.
             </p>
@@ -160,8 +160,8 @@ const Home: React.FC<HomeProps> = ({ isLoggedIn, setIsLoggedIn }) => {
             <div className="step-number">1</div>
             <h3>Töltsd ki a kérdőívet</h3>
             <p>
-              Írd be adataid (magasság, súly, célok, preferenciák), hogy
-              személyre szabottan állíthassuk össze az étrendedet.
+              Írd be személyes adataid, hogy
+              segíthessünk célokat felállítani és visszakövethetőnek maradni.
             </p>
             <button
               className="step-button"
@@ -173,10 +173,9 @@ const Home: React.FC<HomeProps> = ({ isLoggedIn, setIsLoggedIn }) => {
 
           <div className="step-card">
             <div className="step-number">2</div>
-            <h3>Állítsd össze a menüdet</h3>
+            <h3>Jegyzeteld az étkezéseket</h3>
             <p>
-              Válogass a különböző receptekből, és generálj bevásárlólistát, hogy
-              mindig tudd, mit kell venned.
+              Válogass a különböző ételekből és állítsd össze saját menüdet, amellyel élmény a célod felé vezető út.
             </p>
             <button
               className="step-button"
@@ -190,8 +189,7 @@ const Home: React.FC<HomeProps> = ({ isLoggedIn, setIsLoggedIn }) => {
             <div className="step-number">3</div>
             <h3>Kövesd a haladást</h3>
             <p>
-              Monitorozd a fejlődésed, oszd meg sikereidet, és kérj tanácsot a
-              közösségtől.
+              Monitorozd a fejlődésed, vonj le következtetéseket és állíts fel új célokat.
             </p>
             <button
               className="step-button"

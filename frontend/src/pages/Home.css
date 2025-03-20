@@ -117,7 +117,7 @@ body, html {
     background: linear-gradient(120deg, #ffe5ef, #fbc9dd, #e30b5c);
     background-size: 200% 200%;
     animation: gradientMove 8s ease infinite;
-    padding: 330px 20px;
+    padding: 300px 20px;
     box-sizing: border-box;
     overflow: hidden;
     border-bottom-left-radius: 50px;
@@ -150,7 +150,7 @@ body, html {
   .hero-text {
     max-width: 700px;
     color: #333;
-    margin-bottom: 20px;
+    margin-bottom: 150px;
     flex: 1;
     font-size: larger;
     margin-left: 7%;

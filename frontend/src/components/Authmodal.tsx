@@ -73,13 +73,13 @@ const AuthModal: React.FC<AuthModalProps> = ({
   const hasNumber = /\d/.test(registerPassword);
   const hasSpecial = /[!@#$%^&*]/.test(registerPassword);
 
-  const getPasswordProgress = (password: string): number => {
-    let count = 0;
-    if (hasUppercase) count++;
-    if (hasNumber) count++;
-    if (hasSpecial) count++;
-    return (count / 3) * 100;
-  };
+   const getPasswordProgress = (password: string): number => {
+       let count = 0;
+       if (/[A-Z]/.test(password)) count++;
+       if (/\d/.test(password)) count++;
+       if (/[!@#$%^&*]/.test(password)) count++;
+       return (count / 3) * 100;
+     };
 
   const mapErrorCodeToMessage = (errorCode: string): string => {
     const code = errorCode.trim();
@@ -245,14 +245,14 @@ const AuthModal: React.FC<AuthModalProps> = ({
   
       // Felhasználói adatok lekérése
       const userResponse = await fetch(
-        `http://localhost:5162/api/Felhasznalo/${userId}`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
+           `http://localhost:5162/api/Felhasznalo/${userId}`,
+           {
+             method: "GET",
+             headers: {
+               "Content-Type": "application/json",
+               "Authorization": `Bearer ${token}`,
+             },
+           }
       );
   
       if (!userResponse.ok) {
