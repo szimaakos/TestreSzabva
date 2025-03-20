@@ -6,6 +6,7 @@ import AuthModal from "../components/Authmodal";
 import weeklyschedule from "../images/schedule.jpeg";
 import ingredientbook from "../images/egg.jpeg";
 import communityhealth from "../images/community.jpeg";
+import fokepernyokep from "../images/fokepernyo.png"
 
 import "./Home.css";
 
@@ -136,7 +137,7 @@ const Home: React.FC<HomeProps> = ({ isLoggedIn, setIsLoggedIn }) => {
         <div className="hero-content">
           <div className="hero-text">
             <h1>Formáld át az életed a TestreSzabva programmal!</h1>
-            <p>
+             <p>
               A személyre szabott heti étrendjeink és receptjeink segítségével
               könnyedén követheted az egészséges életmódot, és támogatjuk a
               céljaid elérését.
@@ -146,7 +147,7 @@ const Home: React.FC<HomeProps> = ({ isLoggedIn, setIsLoggedIn }) => {
             </button>
           </div>
           <div className="hero-image">
-            <div className="image-placeholder">Kép helye</div>
+            <div className="image-placeholder "><img src={fokepernyokep}/> </div>
           </div>
         </div>
       </section>

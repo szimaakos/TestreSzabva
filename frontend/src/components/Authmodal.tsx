@@ -156,13 +156,12 @@ const AuthModal: React.FC<AuthModalProps> = ({
           }),
         }
       );
-
+  
       if (response.ok) {
-        setStatusMessage("Sikeres regisztráció!");
-        localStorage.removeItem('registerUserName');
-        
-        
-        onTabChange("login");
+        setStatusMessage(
+          "Sikeres regisztráció! Ellenőrizd e-mail fiókod a megerősítő linkért."
+        );
+        // Nem töröljük a mezőket, hogy a felhasználó lássa, mit írt be
       } else {
         const errorText = await response.text();
         const friendlyError = mapErrorCodeToMessage(errorText);
@@ -208,8 +207,14 @@ const AuthModal: React.FC<AuthModalProps> = ({
   
       if (!response.ok) {
         const errorText = await response.text();
-        const friendlyError = mapErrorCodeToMessage(errorText);
-        setStatusMessage("Hibás belépési adatok: " + friendlyError);
+        if (errorText.includes("Az e-mail cím még nincs megerősítve")) {
+          setStatusMessage(
+            "Az e-mail címed még nincs megerősítve. Ellenőrizd a postaládád."
+          );
+        } else {
+          const friendlyError = mapErrorCodeToMessage(errorText);
+          setStatusMessage("Hibás belépési adatok: " + friendlyError);
+        }
         return;
       }
   

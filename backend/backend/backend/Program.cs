@@ -6,12 +6,20 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using backend.Data;
 using backend.Models;
+using backend.Services;
+using Microsoft.AspNetCore.Identity.UI.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // 1. Adatbazis-szolgaltatas regisztralasa (SQLite)
 builder.Services.AddDbContext<TestreSzabvaContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// Email szolgáltatás regisztrálása - ha van saját email szolgáltatás
+builder.Services.AddTransient<IEmailService, EmailService>();
+
+// Microsoft.AspNetCore.Identity.UI.Services.IEmailSender regisztrálása
+builder.Services.AddTransient<IEmailSender, EmailSender>();
 
 // 2. CORS beallitasa
 builder.Services.AddCors(options =>
@@ -28,7 +36,11 @@ builder.Services.AddCors(options =>
 // 3. Identity + EF store + jelszo szabalyok
 builder.Services.AddIdentity<Felhasznalo, IdentityRole>(options =>
 {
-    // Jelszo szabalyok eles kornyezethez
+    // Email options
+    options.SignIn.RequireConfirmedEmail = true;
+    options.User.RequireUniqueEmail = true;
+
+    // Password options
     options.Password.RequireDigit = true;
     options.Password.RequireLowercase = true;
     options.Password.RequireUppercase = true;
@@ -69,13 +81,6 @@ builder.Services.AddControllers().AddJsonOptions(options =>
     // hasznalhatod az IgnoreCycles opciot, hogy elkereld a ciklusokat.
     options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
 });
-builder.Services.AddControllers().AddJsonOptions(options =>
-{
-    options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
-    options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
-});
-
-
 
 // 6. Swagger (Csak fejlesztesi kornyezetben)
 builder.Services.AddEndpointsApiExplorer();
@@ -120,7 +125,7 @@ if (app.Environment.IsDevelopment())
         catch (Exception ex)
         {
             // Logolhatod a hibat vagy kezelheted
-            Console.WriteLine($"Hiba a seeding sor?n: {ex.Message}");
+            Console.WriteLine($"Hiba a seeding során: {ex.Message}");
         }
     }
 }
