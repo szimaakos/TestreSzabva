@@ -15,11 +15,11 @@ export interface Felhasznalo {
   calorieGoal?: number;
 }
 
-interface UserContextType {
+export interface UserContextType {
   user: Felhasznalo | null;
   loading: boolean;
   error: string | null;
-  updateUserData: (userData: Felhasznalo) => Promise<boolean>;
+  updateUserData: (userData: Partial<Felhasznalo>) => Promise<boolean>;
   refreshUserData: () => Promise<void>;
   caloriesConsumed: number;
   setCaloriesConsumed: (calories: number) => void;
@@ -90,16 +90,16 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [user, refreshUserData]);
 
-  const updateUserData = useCallback(async (userData: Felhasznalo): Promise<boolean> => {
+  const updateUserData = useCallback(async (userData: Partial<Felhasznalo>): Promise<boolean> => {
     setError(null);
     const userId = localStorage.getItem("userId");
     const token = localStorage.getItem("authToken");
-
+  
     if (!userId || !token) {
       setError("Nincs bejelentkezve!");
       return false;
     }
-
+  
     try {
       const response = await fetch(`http://localhost:5162/api/Felhasznalo/${userId}`, {
         method: "PUT",
@@ -109,9 +109,9 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         },
         body: JSON.stringify(userData),
       });
-
+  
       if (response.ok) {
-        // Frissítjük a context és a localStorage értékét is
+        // Ha van már meglévő user, akkor összeolvasztjuk az új adatokkal
         const updatedUser = { ...user, ...userData } as Felhasznalo;
         setUser(updatedUser);
         localStorage.setItem("userData", JSON.stringify(updatedUser));
@@ -127,6 +127,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return false;
     }
   }, [user]);
+  
 
   return (
     <UserContext.Provider value={{ 

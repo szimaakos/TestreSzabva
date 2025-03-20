@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./OnBoardingPage.css";
+import {useUser} from "../context/UserContext"
+import { Felhasznalo } from "../context/UserContext";
 
 interface NumberStep {
   field: string;
@@ -40,7 +42,9 @@ type Step = NumberStep | SelectStep | DateStep;
 
 const OnBoardingPage: React.FC = () => {
   const navigate = useNavigate();
+  const { updateUserData, refreshUserData } = useUser();
 
+  // Állapotok (weight, height, age, gender, activityLevel, goalWeight, goalDate) – marad ugyanaz
   const [weight, setWeight] = useState<number | undefined>(undefined);
   const [height, setHeight] = useState<number | undefined>(undefined);
   const [age, setAge] = useState<number | undefined>(undefined);
@@ -325,42 +329,34 @@ const OnBoardingPage: React.FC = () => {
     }
     
     setErrorMsg("");
-
-    const token = localStorage.getItem("authToken");
-    const userId = localStorage.getItem("userId");
-    if (!userId || !token) {
-      setErrorMsg("Nincs bejelentkezési információ (userId, authToken). Jelentkezz be újra!");
-      return;
-    }
-
-    try {
-      const response = await fetch(`http://localhost:5162/api/Felhasznalo/${userId}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          weight,
-          height,
-          age,
-          gender,
-          activityLevel,
-          goalWeight,
-          goalDate,
-          isProfileComplete: true,
-        }),
-      });
-      if (response.ok) {
-        navigate("/dashboard");
-      } else {
-        const errorText = await response.text();
-        setErrorMsg("Hiba történt: " + errorText);
-      }
-    } catch (err: any) {
-      setErrorMsg("Hálózati hiba: " + err.message);
+  
+    // Feltételezzük, hogy a user nem null, mert az onboarding után már be kell legyen jelentkezve
+    const currentUser = JSON.parse(localStorage.getItem("userData") || "{}") as Felhasznalo;
+    
+    const updatedData: Felhasznalo = {
+      ...currentUser,
+      weight,
+      height,
+      age,
+      gender,
+      activityLevel,
+      goalWeight,
+      goalDate,
+      isProfileComplete: true,
+    };
+  
+    const success = await updateUserData(updatedData);
+    
+    if (success) {
+      localStorage.removeItem("caloriesData");
+      await refreshUserData();
+      navigate("/dashboard");
+    } else {
+      setErrorMsg("Hiba történt a profil frissítésekor.");
     }
   };
+  
+  
 
   const renderCurrentStep = () => {
     const step = steps[currentStep];
@@ -437,7 +433,6 @@ const OnBoardingPage: React.FC = () => {
         <p className="onboarding-intro">
           Kérjük, add meg az adataidat lépésről lépésre!
         </p>
-
         <div className="progress-bar">
           <div
             className="progress"
@@ -447,13 +442,12 @@ const OnBoardingPage: React.FC = () => {
         <p className="step-indicator">
           Lépés {currentStep + 1} / {totalSteps}
         </p>
-
         <div className="onboarding-form">{renderCurrentStep()}</div>
-
         {errorMsg && <p className="error-message">{errorMsg}</p>}
-
         <div className="button-group">
-          <button onClick={() => navigate("/")} className="onboarding-back">Vissza a kezdőlapra</button>
+          <button onClick={() => navigate("/")} className="onboarding-back">
+            Vissza a kezdőlapra
+          </button>
           {currentStep > 0 && (
             <button className="onboarding-submit" onClick={handleBack}>
               Vissza

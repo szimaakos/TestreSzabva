@@ -23,7 +23,13 @@ const CalorieCounter: React.FC<CalorieCounterProps> = ({ user, caloriesConsumed 
   const [weeklyCalories, setWeeklyCalories] = useState<number | null>(null);
 
   useEffect(() => {
-    if (user && user.weight && user.height && user.age && user.gender && user.activityLevel) {
+    if (
+      user?.weight &&
+      user?.height &&
+      user?.age &&
+      user?.gender &&
+      user?.activityLevel
+    ) {
       let bmr = 0;
       // Mifflin-St Jeor képlet
       if (["férfi", "male"].includes(user.gender.toLowerCase())) {
@@ -57,7 +63,7 @@ const CalorieCounter: React.FC<CalorieCounterProps> = ({ user, caloriesConsumed 
       
       const maintenanceCalories = Math.round(bmr * activityMultiplier);
       
-      // Ha a cél testsúly és a céldátum be van állítva
+      // Célsúly és céldátum esetén
       if (user.goalWeight !== undefined && user.goalDate) {
         const currentDate = new Date();
         const targetDate = new Date(user.goalDate);
@@ -74,12 +80,22 @@ const CalorieCounter: React.FC<CalorieCounterProps> = ({ user, caloriesConsumed 
           return;
         }
       }
-
-      // Ha nincs konkrét cél, marad a karbantartó érték
+      
+      // Ha nincs cél, marad a karbantartó érték
       setDailyCalories(maintenanceCalories);
       setWeeklyCalories(maintenanceCalories * 7);
     }
-  }, [user]);
+  }, [
+    user?.weight,
+    user?.height,
+    user?.age,
+    user?.gender,
+    user?.activityLevel,
+    user?.goalWeight,
+    user?.goalDate
+  ]);
+  
+  
 
   return (
     <div className="calorie-counter">
