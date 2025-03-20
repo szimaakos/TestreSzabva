@@ -394,20 +394,6 @@ const SettingsPage: React.FC = () => {
             {formData && (
               <form onSubmit={handleSubmit} className="settings-form">
                 <div className="form-group">
-                  <label htmlFor="userName">Felhasználónév:</label>
-                  <input
-                    type="text"
-                    id="userName"
-                    name="userName"
-                    value={formData.userName || ""}
-                    onChange={handleChange}
-                    required
-                  />
-                  {fieldErrors.userName && <div className="field-error">{fieldErrors.userName}</div>}
-                  <small className="field-hint">3-30 karakter, csak betűk, számok és _ . - karakterek</small>
-                </div>
-                
-                <div className="form-group">
                   <label htmlFor="email">Email:</label>
                   <input
                     type="email"
