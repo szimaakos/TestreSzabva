@@ -365,7 +365,7 @@ const SettingsPage: React.FC = () => {
       {/* Sidebar */}
       <aside className={`dashboard-sidebar ${menuOpen ? "open" : "closed"}`}>
         <div className="sidebar-header">
-          <h2 onClick={() => navigate("/")} className="logo animated-logo">
+          <h2 onClick={() => navigate("/dashboard")} className="logo animated-logo">
             TestreSzabva
           </h2>
         </div>

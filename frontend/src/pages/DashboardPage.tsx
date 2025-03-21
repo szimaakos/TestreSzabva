@@ -548,7 +548,7 @@ const DashboardPage: React.FC = () => {
       ></div>
       <aside className={`dashboard-sidebar ${menuOpen ? 'open' : 'closed'}`}>
         <div className="sidebar-header">
-          <h2 onClick={() => navigate("/")} className="logo animated-logo">TestreSzabva</h2>
+          <h2 onClick={() => navigate("/dashboard")} className="logo animated-logo">TestreSzabva</h2>
         </div>
         <nav className="sidebar-nav">
           <button onClick={() => handleMenuItemClick("/dashboard")}> 📊 Áttekintés</button>
