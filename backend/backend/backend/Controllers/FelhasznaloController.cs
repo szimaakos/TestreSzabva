@@ -60,7 +60,7 @@ namespace backend.Controllers
 
             // E-mail megerősítési token generálása
             var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-            var encodedToken = HttpUtility.UrlEncode(HttpUtility.UrlEncode(token));
+            var encodedToken = HttpUtility.UrlEncode(token);
 
             // E-mail megerősítési link összeállítása
             var frontendUrl = _configuration["FrontendUrl"];
@@ -123,13 +123,13 @@ namespace backend.Controllers
 
             try
             {
-                // Kétszeres dekódolás, mert a Register metódusban kétszer kódoltuk
-                var decodedToken = HttpUtility.UrlDecode(HttpUtility.UrlDecode(token));
-                var result = await _userManager.ConfirmEmailAsync(user, decodedToken);
+                // Cseréljük le a szóközöket '+' karakterre
+                token = token.Replace(" ", "+");
+
+                var result = await _userManager.ConfirmEmailAsync(user, token);
 
                 if (result.Succeeded)
                 {
-                    // Átirányítás a frontend megfelelő oldalára
                     return Redirect($"{_configuration["FrontendUrl"]}/email-confirmed");
                 }
 
@@ -171,6 +171,39 @@ namespace backend.Controllers
                 Token = token,
                 UserId = user.Id
             });
+        }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateUser(string id, [FromBody] UpdateUserDto dto)
+        {
+            if (id != dto.Id)
+            {
+                return BadRequest("Azonosító eltérés.");
+            }
+
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null)
+            {
+                return NotFound("Felhasználó nem található.");
+            }
+
+            // Frissítsd a szükséges tulajdonságokat
+            user.Weight = dto.Weight;
+            user.Height = dto.Height;
+            user.Age = dto.Age;
+            user.Gender = dto.Gender;
+            user.ActivityLevel = dto.ActivityLevel;
+            user.GoalWeight = dto.GoalWeight;
+            user.GoalDate = dto.GoalDate;
+            user.IsProfileComplete = dto.IsProfileComplete;
+
+            var result = await _userManager.UpdateAsync(user);
+            if (!result.Succeeded)
+            {
+                return BadRequest(result.Errors);
+            }
+
+            return Ok(new { success = true, message = "Profil sikeresen frissítve." });
         }
 
         // ====== A többi metódus változatlan marad ======

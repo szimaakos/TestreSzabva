@@ -57,7 +57,7 @@ builder.Services.AddAuthentication(options =>
 })
 .AddJwtBearer("Bearer", options =>
 {
-    options.RequireHttpsMetadata = true; // eles kornyezetben HTTPS szukseges
+    options.RequireHttpsMetadata = false;
     options.SaveToken = true;
     options.TokenValidationParameters = new TokenValidationParameters
     {

@@ -11,8 +11,8 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(TestreSzabvaContext))]
-    [Migration("20250312230202_sqlite.local_migration_851")]
-    partial class sqlitelocal_migration_851
+    [Migration("20250321072535_sqlite.local_migration_723")]
+    partial class sqlitelocal_migration_723
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
