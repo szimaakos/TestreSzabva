@@ -8,7 +8,6 @@ import DashboardPage from "./pages/DashboardPage";
 import SettingsPage from "./pages/SettingsPage";
 import { UserProvider } from './context/UserContext';
 import EmailConfirmed from "./components/EmailConfirmed";
-import ConfirmEmail from "./components/ConfirmEmail";
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -22,7 +21,6 @@ function App() {
         <Route path="/receptek" element={<ReceptekPage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/settings" element={<SettingsPage />} />
-        <Route path="/confirm-email" element={<ConfirmEmail />} />
         <Route path="/email-confirmed" element={<EmailConfirmed />} />
       </Routes>
     </UserProvider>

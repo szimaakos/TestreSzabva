@@ -64,18 +64,95 @@ namespace backend.Controllers
 
             // E-mail megerősítési link összeállítása
             var frontendUrl = _configuration["FrontendUrl"];
-            var confirmUrl = $"http://localhost:5162/api/Felhasznalo/ConfirmEmail?userId={user.Id}&token={encodedToken}"; 
+            var confirmUrl = $"http://localhost:5162/api/Felhasznalo/ConfirmEmail?userId={user.Id}&token={encodedToken}";
 
             // E-mail küldése
             await _emailSender.SendEmailAsync(
-                user.Email,
-                "E-mail megerősítése - TestreSzabva",
-                $"<h2>Köszönjük, hogy regisztráltál a TestreSzabva alkalmazásba!</h2>" +
-                $"<p>Kérjük, kattints az alábbi linkre az e-mail címed megerősítéséhez:</p>" +
-                $"<p><a href='{confirmUrl}'>E-mail megerősítése</a></p>" +
-                $"<p>Ha nem te regisztráltál, kérjük, hagyd figyelmen kívül ezt az e-mailt.</p>" +
-                $"<p>Üdvözlettel,<br>TestreSzabva csapat</p>"
-            );
+    user.Email,
+    "Erősítsd meg e-mail címed és kezdd el a személyre szabott élményt - TestreSzabva",
+    $@"<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='UTF-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <style>
+        body {{
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            color: #333333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }}
+        .header {{
+            text-align: center;
+            margin-bottom: 30px;
+        }}
+        .header h1 {{
+            color: #e30b5c;
+            margin-bottom: 5px;
+        }}
+        .content {{
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }}
+        .button {{
+            display: inline-block;
+            background-color: #e30b5c;
+            color: white;
+            text-decoration: none;
+            padding: 12px 30px;
+            border-radius: 4px;
+            margin: 20px 0;
+            font-weight: bold;
+        }}
+        button a {{
+            text-decoration: none;
+            color: white;
+        }}
+        .footer {{
+            font-size: 14px;
+            color: #666;
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+        }}
+    </style>
+</head>
+<body>
+    <div class='header'>
+        <h1>Üdvözlünk <strong>{user.UserName}</strong> a TestreSzabva világában!</h1>
+    </div>
+    
+    <div class='content'>
+        
+        <p>Köszöntünk a TestreSzabva közösségében! Már csak egy lépés választ el attól, hogy teljes mértékben kihasználhasd az alkalmazás által nyújtott személyre szabott élményt.</p>
+        
+        <p style='text-align: center;'>
+            <a href='{confirmUrl}' class='button'>E-mail cím megerősítése</a>
+        </p>
+        
+        <p>Az e-mail címed megerősítésével:</p>
+        <ul>
+            <li>Hozzáférsz az összes személyre szabott szolgáltatásunkhoz</li>
+            <li>Biztonságban tudhatod fiókodat</li>
+            <li>Értesülhetsz a legújabb fejlesztéseinkről és ajánlatainkról</li>
+        </ul>
+        
+        <p>Ha nem te regisztráltál oldalunkon, kérjük, hagyd figyelmen kívül ezt az üzenetet.</p>
+    </div>
+    
+    <div class='footer'>
+        <p>Köszönjük, hogy minket választottál!</p>
+        <p>Üdvözlettel,<br>A TestreSzabva csapata</p>
+        <p><small>© 2025 TestreSzabva. Minden jog fenntartva.</small></p>
+    </div>
+</body>
+</html>"
+);
 
             // Sikeres regisztráció -> 201 Created
             return CreatedAtAction(nameof(GetById), new { id = user.Id }, new { user.Id, user.UserName, user.Email });
