@@ -330,11 +330,14 @@ const OnBoardingPage: React.FC = () => {
     
     setErrorMsg("");
   
-    // Feltételezzük, hogy a user nem null, mert az onboarding után már be kell legyen jelentkezve
-    const currentUser = JSON.parse(localStorage.getItem("userData") || "{}") as Felhasznalo;
+    const currentUserId = localStorage.getItem("userId");
+    if (!currentUserId) {
+      setErrorMsg("Felhasználó azonosító hiányzik!");
+      return;
+    }
     
-    const updatedData: Felhasznalo = {
-      ...currentUser,
+    const updatedData: Partial<Felhasznalo> = {
+      id: currentUserId, // A localStorage-ból kapott userId
       weight,
       height,
       age,
@@ -355,9 +358,6 @@ const OnBoardingPage: React.FC = () => {
       setErrorMsg("Hiba történt a profil frissítésekor.");
     }
   };
-  
-  
-
   const renderCurrentStep = () => {
     const step = steps[currentStep];
     if (step.type === "number") {

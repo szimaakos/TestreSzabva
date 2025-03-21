@@ -126,7 +126,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setError("Hiba történt a felhasználói adatok frissítésekor.");
       return false;
     }
-  }, [user]);
+  }, [user]);  
   
 
   return (
