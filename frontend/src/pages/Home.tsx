@@ -285,7 +285,7 @@ const Home: React.FC<HomeProps> = ({ isLoggedIn, setIsLoggedIn }) => {
           egészséges életmódodat. Nem vagy egyedül: itt a támogatás minden
           lépésnél!
         </p>
-        <button className="cta-button scroll-animation">
+        <button className="cta-button">
           Ingyenes regisztráció
         </button>
       </section>

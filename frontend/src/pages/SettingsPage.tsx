@@ -402,6 +402,7 @@ const SettingsPage: React.FC = () => {
                     value={formData.email || ""}
                     onChange={handleChange}
                     required
+                    readOnly
                   />
                   {fieldErrors.email && <div className="field-error">{fieldErrors.email}</div>}
                   <small className="field-hint">Érvényes email cím formátumban (pl. nev@domain.com)</small>
@@ -444,20 +445,6 @@ const SettingsPage: React.FC = () => {
                   />
                   {fieldErrors.age && <div className="field-error">{fieldErrors.age}</div>}
                   <small className="field-hint">Érvényes értékek: {MIN_AGE} - {MAX_AGE} év</small>
-                </div>
-                
-                <div className="form-group">
-                  <label htmlFor="gender">Nem:</label>
-                  <select
-                    id="gender"
-                    name="gender"
-                    value={formData.gender || ""}
-                    onChange={handleChange}
-                  >
-                    <option value="">Válassz</option>
-                    <option value="férfi">Férfi</option>
-                    <option value="nő">Nő</option>
-                  </select>
                 </div>
                 
                 <div className="form-group">
