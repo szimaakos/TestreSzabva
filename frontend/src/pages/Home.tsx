@@ -285,6 +285,9 @@ const Home: React.FC<HomeProps> = ({ isLoggedIn, setIsLoggedIn }) => {
           egészséges életmódodat. Nem vagy egyedül: itt a támogatás minden
           lépésnél!
         </p>
+        <p>
+          Kapcsolat: testreszabvaapp@gmail.com
+        </p>
         <button className="cta-button">
           Ingyenes regisztráció
         </button>

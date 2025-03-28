@@ -164,10 +164,11 @@ body, html {
   flex: 1;
   font-size: larger;
   margin-left: 7%;
+  font-weight: 600;
 }
 
 .hero-text h1 {
-  font-size: 4rem;  /* Nagyobb, merész betűméret */
+  font-size: 5rem;  
   margin-bottom: 16px;
   font-weight: 600;
   color: #461228;
@@ -443,11 +444,13 @@ body, html {
 .cta-join-section h2 {
   color: #e30b5c;
   margin-bottom: 16px;
+  font-size: 1.8rem;
 }
 
 .cta-join-section p {
   margin-bottom: 24px;
   color: #555;
+  font-size: 1.1rem;
 }
 
 /* ===== FOOTER ===== */
