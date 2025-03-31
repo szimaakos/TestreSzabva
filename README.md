@@ -1,64 +1,107 @@
 TestreSzabva
-Ez a projekt egy modern, személyre szabott étrend-tervező és egészségügyi monitorozó rendszer, amely segít az egészséges életmód kialakításában.
+A TestreSzabva projekt célja, hogy megkönnyítse az egészséges és fenntartható életmód kialakítását azok számára, akik tudatosan szeretnék követni étrendjüket. A rendszer heti bontású étkezési tervezést, személyre szabott étrendi ajánlásokat és részletes önellenőrzést kínál, így segítve a felhasználókat céljaik elérésében.
 
-Nagyon Fontos Információk
+Fontos Információk
 Operációs rendszer:
 
-    Windows 10/11 (a WPF alapú Admin Panel kizárólag Windows alatt fut).
+Windows 10/11 (a WPF alapú Admin Panel kizárólag Windows alatt fut)
+
+A rendszer Linuxon is futtatható, amennyiben kompatibilis környezetet biztosítanak.
 
 Fejlesztési eszközök:
 
-    Frontend: Visual Studio Code, Node.js, npm
+Frontend: Visual Studio Code, Node.js, npm
 
-    Backend: Visual Studio (ASP.NET Core Web API, .NET 9.0)
+Backend: Visual Studio (ASP.NET Core Web API, .NET 9.0)
 
 Admin Panel: WPF alkalmazás
 
 Technológiák:
 
-  Backend: ASP.NET Core Web API (9.0) csomagokkal, mint például Microsoft.AspNetCore.Authentication.JwtBearer, EntityFrameworkCore stb.
+Backend: ASP.NET Core Web API (9.0) – használva többek között a Microsoft.AspNetCore.Authentication.JwtBearer, EntityFrameworkCore stb. csomagokat
 
-  Frontend: React + TypeScript, modulok: React, React-Router-Dom, React-Lucide, React-Chartjs-2
+Frontend: React + TypeScript (React, React-Router-Dom, React-Lucide, React-Chartjs-2 modulok)
 
-  Adatbázis: SQLite, normalizált adatmodell
+Adatbázis: SQLite, normalizált adatmodell
 
 Kapcsolat:
+Hibák, kérdések esetén kérjük, vedd fel velünk a kapcsolatot a testreszabvaapp@gmail.com címen!
 
-  Hibák, kérdések esetén vedd fel velünk a kapcsolatot a testreszabvaapp@gmail.com címen!
+Dokumentáció
+A teljes projekt dokumentációja elérhető a repoban található dokumentacio mappán belül a testreszabva.pdf fájlban. Itt megtalálható a fejlesztői dokumentáció, az adatmodell, a tesztelési leírás, valamint további részletek a rendszer működéséről és bővítési lehetőségeiről.
+
+Forráskód
+A projekt forráskódja a repóban érhető el az alábbi mappákban:
+
+frontend – a kliensoldali alkalmazás React és TypeScript alapokon
+
+backend – ASP.NET Core Web API a szerveroldali logikához
+
+wpf – Windowsos Admin Panel (WPF alkalmazás)
+
+demo_data – demo adatok, amelyek előre betöltött ételeket tartalmaznak
+
+Előkészületek a Kipróbáláshoz
+A projekt demo adatai már be vannak töltve, így a rendszer kipróbálható a betöltött tesztadatokkal. Ha szükséges, az admin felületen lehetőség van a demo adatok módosítására, törlésére, illetve új adatok bulk importálására.
 
 Telepítés és Elindítás
-1. A Projekt Letöltése GitHubról
+1. A projekt letöltése GitHubról
 Nyisd meg a parancssort (CMD, Git Bash vagy terminál) és futtasd a következő parancsot:
 
-     git clone https://github.com/szimaakos/TestreSzabva.git
+bash
+Másolás
+git clone https://github.com/szimaakos/TestreSzabva.git
 Ezután lépj be a letöltött projekt mappájába.
 
 2. Frontend Indítása
-Visual Studio Code megnyitása:
-Navigálj a Frontend mappába, majd nyisd meg azt Visual Studio Code-ban. Ehhez jobb klikk a mappára, majd válaszd a „Git Bash megnyitása” opciót, vagy indítsd el a VS Code-t és nyisd meg a mappát.
+Visual Studio Code használatával:
+
+Navigálj a frontend mappába, majd nyisd meg azt Visual Studio Code-ban (jobb klikk a mappára és válaszd a „Git Bash megnyitása”, vagy indítsd el közvetlenül a VS Code-t).
 
 Node modulok telepítése:
-A VS Code Terminaljában futtasd a következő parancsokat:
 
-    npm install
-    npm install react-router-dom
+A VS Code Terminaljában futtasd az alábbi parancsokat:
+
+bash
+Másolás
+npm install
+npm install react-router-dom
 Fejlesztői szerver indítása:
-Futtasd a parancsot:
 
+Indítsd el a szervert az alábbi paranccsal:
 
-    npm run dev
-Ez elindítja a szervert, majd a böngésződben a megjelenő linkre kattintva (például http://localhost:5173) érheted el az alkalmazást.
+bash
+Másolás
+npm run dev
+Ezután a böngésződben a megjelenő linkre (pl. http://localhost:5173) kattintva érheted el az alkalmazást.
 
 3. Backend Indítása
 Visual Studio használata:
-Lépj a Backend mappába, majd keresd meg a backend.sln fájlt.
 
-Megoldás megnyitása:
-    Nyisd meg a backend.sln fájlt Visual Studio-ban.
+Navigálj a backend mappába, majd keresd meg a backend.sln (solution) fájlt.
 
-Backend szerver elindítása:
-A Visual Studio felső menüjében kattints az „HTTP” gombra a backend szerver indításához. Ezzel aktiválódik a regisztráció, bejelentkezés és egyéb felhasználói műveletek kezelése.
+Nyisd meg a backend.sln fájlt Visual Studio-ban.
+
+A Visual Studio felső menüjében kattints az „HTTP” gombra a backend szerver elindításához. Ezzel aktiválódik a regisztráció, bejelentkezés és egyéb felhasználói műveletek kezelése.
 
 4. Admin Panel Indítása
-WPF alkalmazás:
-Az Admin Panel egy külön WPF alkalmazás, amely csak Windows alatt fut. Nyisd meg a megfelelő projektet Visual Studio-ban, majd indítsd el a WPF alkalmazást a szokásos módon.
+WPF alkalmazás (csak Windows alatt):
+
+Nyisd meg a wpf mappában található projektet Visual Studio-ban.
+
+Indítsd el a WPF alkalmazást a megszokott módon.
+
+Tesztadatok
+A projektben már be vannak töltve a demo adatok, melyek előre beállított ételeket tartalmaznak.
+
+A rendszer kipróbálható ezekkel az adatokkal; további funkciók elérése esetén a szoftver az előre betöltött tesztadatokkal is működik.
+
+Ha szükséges, az admin felületen lehetőség van az adatok módosítására, törlésére, illetve új adatok importálására.
+
+Unit Tesztek
+A unit tesztek részletes dokumentációja szintén elérhető a testreszabva.pdf fájlban, a fejlesztői dokumentáció részben. Ezek biztosítják a kód megbízhatóságát és a funkcionális követelmények teljesítését.
+
+Összegzés
+A TestreSzabva projekt egy komplex rendszer, amely az egészséges életmód támogatását célozza meg heti bontású étkezési tervezéssel, személyre szabott ajánlásokkal és részletes önellenőrzéssel. A rendszer modern technológiákat alkalmaz, és könnyen testreszabható, karbantartható megoldást kínál a felhasználók számára.
+
+Bármilyen kérdés vagy probléma esetén kérjük, vedd fel velünk a kapcsolatot a testreszabvaapp@gmail.com címen!
